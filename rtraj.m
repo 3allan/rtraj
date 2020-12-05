@@ -2,7 +2,7 @@
 % Simulate ground-to-orbit trajectory of all rocket stages
 % Initially created - Oct 16, 2019
 % Reboot v7.0.0 - Nov 30, 2020
-% Current v7.0.0 - Nov 30, 2020
+% Current v7.0.1 - Dec 5, 2020
 % Matt Werner (m.werner@vt.edu)
 
 % Notes
@@ -67,7 +67,7 @@ towerSpan = 30 * ft2in * in2m; % Length of launch tower [ft] --> [in] --> [m]
 % Define rocket parameters (lengths/distances)
 LenRocket = [6.35, 3.71]; % [Overall length during S1, Overall length during S2] [m]
 LenNoseCM = 4.15; % Distance from the nose cone's tip to the center of mass [m]
-diaOuterD = [8.5, 6] * in2m; % [S1 outer diameter, S2 outer diameter] [in] --> [m]
+diaOuter_ = [8.5, 6] * in2m; % [S1 outer diameter, S2 outer diameter] [in] --> [m]
 diaThroat = [2.5, 1.6] * in2m; % [S1 throat diameter, S2 throat diameter] [in] --> [m]
 diaExit__ = [6.01, 4.47] * in2m; % [S1 exit diameter, S2 exit diameter] [in] --> [m]
 diaFlatDM = [36, 108] * in2m; % [flat drogue diameter, flat main diameter] [in] --> [m]
@@ -83,7 +83,7 @@ delaySep_ = 2; % Time it takes for second stage to separate from first stage [s]
 delayIgn_ = 0; % Time it takes for second stage to fire after separation [s]
 deployAlt = 609; % Altitude of main parachute deployment (2000 ft) [m]
 % Constants and measured quantities relevant to ODE initial conditions
-Rail2Rock = outerDiam(1)/2; % Perpendicular distance from rail to rocket's centerline [m]
+Rail2Rckt = diaOuter_(1)/2; % Perpendicular distance from rail to rocket's centerline [m]
 Rail2Vert = 5; % Angle made between railing and vertical [deg]
 East2Dwnr = 30; % Angle made between launch (downrange) direction and due East [deg]
 veps = 0; % Very small initial velocity [m/s]
@@ -95,8 +95,8 @@ veps = 0; % Very small initial velocity [m/s]
 % Obtain parameters that define an Earth model
 [GM, Req, Rpo, f, e, w] = defineEllipsoidParameters('WGS84');
 Ravg = getEllipsoidAverageRadius(Req, Rpo, '++');
-[nG, mG, ~, Cnm, Snm, ~, ~] = loadGravitationalCoefficients(100, 50, 'tide-free');
-[Cnm, Snm] = updateGravitationalCoefficients(JDLaunch, nG, mG, Cnm, Snm); clear nG mG
+[nG, mG, ~, Cnm, Snm, ~, ~] = loadGravitationalCoefficients(2190, 2159, 'tide-free');
+[Cnm, Snm] = updateGravitationalCoefficients(JDLaunch, nG, mG, Cnm, Snm); clear nG mG CnmGo SnmGo
 [nM, mM, gnm, hnm, dgnmdt, dhnmdt] = loadMagneticCoefficients(12, 12);
 [gnm, hnm] = updateMagneticCoefficients(JDLaunch, gnm, hnm, dgnmdt, dhnmdt); clear dgnmdt dhnmdt
 [longitude, geodeticLatitude, WGS84ToGeoid, GeoidToTerrain, WGS84ToTerrain] = loadTerrain('radians');

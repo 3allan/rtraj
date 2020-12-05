@@ -1,4 +1,4 @@
-function [Cnm, Snm] = updateGravitationalCoefficients(t, n, m, Cnm, Snm)
+function [Cnm, Snm] = updateGravitationalCoefficients(t, n, m, Cnmo, Snmo)
 % 
 % Matt Werner (m.werner@vt.edu) - Dec 1, 2020
 % 
@@ -22,19 +22,19 @@ function [Cnm, Snm] = updateGravitationalCoefficients(t, n, m, Cnm, Snm)
 %                     Size: L-by-1 (vector)*
 %                     Units: - (unitless)
 % 
-%               Cnm - Cosine-series harmonic coefficients of the gravity
-%                     model of degree N and order M as defined at the epoch
-%                     2008.0 except C20, C30, and C40 which are defined at
-%                     2000.0 (J2000). These Cnm are fully-normalized, non-
-%                     dimensional, nominal (unperturbed) coefficients.
+%              Cnmo - Original cosine-series harmonic coefficients of the
+%                     gravity model of degree N and order M as defined at
+%                     the epoch 2008.0 except C20, C30, and C40 which are 
+%                     defined at 2000.0 (J2000). These Cnm are fully-
+%                     normalized, non-dimensional, nominal (unperturbed)
+%                     coefficients.
 %                     Size: L-by-1 (vector)*
 %                     Units: - (unitless)
 % 
-%               Snm - Sine-series harmonic coefficients of the gravity
-%                     model of degree N and order M as defined at the epoch
-%                     2008.0 except C20, C30, and C40 which are defined at
-%                     2000.0 (J2000). These Snm are fully-normalized, non-
-%                     dimensional, nominal (unperturbed) coefficients.
+%              Snmo - Original sine-series harmonic coefficients of the
+%                     gravity model of degree N and order M as defined at
+%                     the epoch 2008.0. These Snm are fully-normalized, 
+%                     non-dimensional, nominal (unperturbed) coefficients.
 %                     Size: L-by-1 (vector)*
 %                     Units: - (unitless)
 % 
@@ -159,8 +159,14 @@ WeightsAndipop{3} = ...
  [245.655, 28.43973,  1,  0,  2,  0,  2,   0.00006, 0,       -0.3,  0.0 
   255.555, 28.98410,  0,  0,  2,  0,  2,   0.00004, 0,       -1.2,  0.0];
 
-%% Correct for secular rate from J2000
+% Display
 disp("Updating gravity model...")
+
+% Initialize output
+Cnm = Cnmo;
+Snm = Snmo;
+
+%% Correct for secular rate from J2000
 % Get J2000 epoch
 J2000 = getJulianDateofJ2000; % [Julian days]
 
@@ -170,7 +176,7 @@ tSinceJ2000JD = t - J2000;
 tSinceJ2000JY = tSinceJ2000JD/365.25;
 
 % Pull out the nominal zonal coefficients (Cn0)
-Cn0nom = Cnm(m == 0);
+Cn0nom = Cnmo(m == 0);
 
 % Correct the first 3 of them by applying a linear variation in their
 % secular rates
@@ -310,11 +316,14 @@ for mm = 0:2
     Snm(n == 2 & m == mm) = Snm(n == 2 & m == mm) - imag(DCnm_minus_iDSnm);
 end
 
-% Correct for effects that ocean tides have on the gravitational field
+% Step 3 only applies if using the zero-tide gravitational model
+% --> use tide-free for now
+
+%% Correct for effects that ocean tides have on the gravitational field
 % load("mats/EGM/coefficientmats/fes2004CnmSnm.mat", "fes2004CnmSnm", '-mat');
 %  Match tidal frequencies used in thetaf with tidal frequencies in this .mat.
 
-% Check nonzero elements again
-checkCoefficients(Cnm, Snm, "Gravity")
+% Check how many coefficients have changed
+checkCoefficients(Cnm, Snm, "Gravity", Cnmo, Snmo)
 
 fprintf("Updated gravity model\n\n")

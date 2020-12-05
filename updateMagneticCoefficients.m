@@ -1,4 +1,4 @@
-function [gnm, hnm] = updateMagneticCoefficients(t, gnm, hnm, dgnmdt, dhnmdt)
+function [gnm, hnm] = updateMagneticCoefficients(t, gnmo, hnmo, dgnmdt, dhnmdt)
 % 
 % Matt Werner (m.werner@vt.edu) - Dec 1, 2020
 % 
@@ -54,6 +54,10 @@ function [gnm, hnm] = updateMagneticCoefficients(t, gnm, hnm, dgnmdt, dhnmdt)
 % Display
 disp("Updating magnetic model...")
 
+% Initialize output
+gnm = gnmo;
+hnm = hnmo;
+
 % Obtain Julian date in UTC of 2020.0
 JD2020UTC = juliandate([2020, 1, 1, 0, 0, 0]);
 
@@ -66,7 +70,7 @@ gnm = gnm + dgnmdt*tSince2020JYUTC;
 hnm = hnm + dhnmdt*tSince2020JYUTC;
 
 % Check nonzero elements again
-checkCoefficients(gnm, hnm, "Magnetic")
+checkCoefficients(gnm, hnm, "Magnetic", gnmo, hnmo)
 
 % Display
 fprintf("Updated magnetic model\n\n")
