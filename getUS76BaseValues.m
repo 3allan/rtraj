@@ -1,4 +1,4 @@
-function [g0, r0, p0, T0, S, Y] = getUS76BaseValues
+function [g0, r0, p0, T0, Y] = getUS76BaseValues
 % 
 % Matt Werner (m.werner@vt.edu) - Dec 5, 2020
 % 
@@ -30,11 +30,6 @@ function [g0, r0, p0, T0, S, Y] = getUS76BaseValues
 %                     Size: 1-by-1 (scalar)
 %                     Units: K (Kelvin)
 % 
-%                 S - Sutherland's constant for use within Sutherland's law
-%                     to calculate dynamic viscosity.
-%                     Size: 1-by-1 (scalar)
-%                     Units: K (Kelvin)
-% 
 %                 Y - Ratio of specific heats for dry air.
 %                     Size: 1-by-1 (scalar)
 %                     Units: - (unitless)
@@ -44,5 +39,4 @@ g0 = 9.80665;
 r0 = 6356766;
 p0 = 101325;
 T0 = 288.15;
-S = 110;
 Y = 1.40;

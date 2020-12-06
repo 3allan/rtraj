@@ -15,7 +15,7 @@ function checkxInInterval(x, I)
 %                     Size: n-by-1 (vector)
 %                     Units: ? (corresponds to those in I)
 % 
-%                 I - Interval [a, b] with a < b in which every component 
+%                 I - Interval [a, b] with a <= b in which every component 
 %                     of x must lie. If the height of I is 1, then every 
 %                     component of x is checked against this single 
 %                     interval. Otherwise, the components of x are checked 
@@ -43,7 +43,7 @@ for ii = 1:numelx
     xii = x(ii);
     Iii = min(ii, numelI/2);
     [a, b] = deal(I(Iii, 1), I(Iii, 2));
-    if (b <= a)
+    if (b < a)
         error("Interval is in an invalid format.")
     elseif (xii < a || xii > b)
         if (numelx > 1)

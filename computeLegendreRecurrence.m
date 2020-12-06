@@ -34,12 +34,19 @@ checkxInInterval(m, [0, n])
 % Check if x is in the proper interval
 checkxInInterval(x, [-1, 1])
 
-% Find closest starting position
-
-
-% Begin recurrence relation
-if (x^2 < 0.97) % Numerically stable - upward recurrence
-    Pnn = (-1)^n * doubleFactorial(2*n - 1) * (1 - x^2
+% Try to do a recurrance
+if (n == 0 && m == 0)
+    PnmRecurrence = 1;
+elseif (n == 1 && m == 0)
+    PnmRecurrence = x;
+elseif (n == 2 && m == 0)
+    PnmRecurrence = 1.5*x^2 - 0.5;
+elseif (m == n)
+    PnmRecurrence = (-1)^n * doubleFactorial(2*n - 1) * (1 - x^2)^(0.5*n);
+elseif (m == 0)
+    PnmRecurrence = ((2*n - 3)*x*computeLegendreRecurrence(n-2, 0, x) - (n - 2)*computeLegendreRecurrence(n-3, 0, x)) / (n - 1);
 else
-    
+    PnmRecurrence = -0.5*sqrt(1-x^2)/m * (computeLegendreRecurrence(n-1, m+1, x) + (n + m - 1)*(n + m)*computeLegendreRecurrence(n-1, m-1, x));
 end
+
+
