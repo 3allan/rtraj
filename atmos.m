@@ -99,6 +99,8 @@ function [d, T, varargout] = atmos(model, geomH, varargin)
 %                                [01] NASA-TM-X-74335 (U.S. Standard
 %                                     Atmosphere, 1976)
 %                                     Doc ID: 19770009539
+%                                [02] http://braeunig.us/space/...
+%                                     ...atmmodel.htm#USSA1976
 % 
 %                        "ISA" - Provides the International Standard
 %                                Atmosphere. This atmosphere is completely
@@ -121,7 +123,7 @@ function [d, T, varargout] = atmos(model, geomH, varargin)
 %                                above/below +/-70 degrees geodetic
 %                                latitude.
 %                                Reference:
-%                                [02] http://braeunig.us/space/...
+%                                [03] http://braeunig.us/space/...
 %                                     ...atmmodel.htm#refatmos
 % 
 %                 "MIL-STD210" - Provides a nonstandard atmosphere obtained
@@ -139,7 +141,7 @@ function [d, T, varargout] = atmos(model, geomH, varargin)
 %                                to be a perfect sphere. This model is the
 %                                predecessor to MIL-HDBK310.
 %                                Reference:
-%                                [03] >> doc atmosnonstd
+%                                [04] >> doc atmosnonstd
 %                                Aerospace toolbox only.
 % 
 %                "MIL-HDBK310" - Provides a nonstandard atmosphere obtained
@@ -157,7 +159,7 @@ function [d, T, varargout] = atmos(model, geomH, varargin)
 %                                to be a perfect sphere. This model is the
 %                                successor to MIL-STD210.
 %                                Reference:
-%                                [03] >> doc atmosnonstd
+%                                [04] >> doc atmosnonstd
 %                                Aerospace toolbox only.
 % 
 %                   "CIRA1986" - Provides the corrected version of the 
@@ -172,7 +174,7 @@ function [d, T, varargout] = atmos(model, geomH, varargin)
 %                                not exceeding +/-80 degrees.
 %                                *Committee on Space Research (COSPAR)
 %                                Reference:
-%                                [04] >> doc atmoscira
+%                                [05] >> doc atmoscira
 %                                Aerospace toolbox only.
 % 
 %                 "NRLMSISE00" - Provides the NRL*MSISE** atmosphere model
@@ -193,10 +195,10 @@ function [d, T, varargout] = atmos(model, geomH, varargin)
 %                                **Mass Spectrometer and Incoherant Scatter
 %                                   Radar Exosphere (MSISE)
 %                                References:
-%                                [05] >> doc atmosnrlmsise00
-%                                [06] https://ccmc.gsfc.nasa.gov/...
+%                                [06] >> doc atmosnrlmsise00
+%                                [07] https://ccmc.gsfc.nasa.gov/...
 %                                     ...modelweb/models/nrlmsise00.php
-%                                [07] https://www.nrl.navy.mil/ssd/...
+%                                [08] https://www.nrl.navy.mil/ssd/...
 %                                     ...branches/7630/...
 %                                     ...modeling-upper-atmosphere
 %                                Aerospace toolbox only.
@@ -210,13 +212,13 @@ function [d, T, varargout] = atmos(model, geomH, varargin)
 %                                radio flux) values and magnetic field
 %                                indices.
 %                                References:
-%                                [08] https://sol.spacenvironment.net/...
+%                                [09] https://sol.spacenvironment.net/...
 %                                     ...jb2008/
 %                                Requires gfortran.
 % 
 %                              * A (brief) list of more atmosphere (and
 %                                other) models may be found here:
-%                                [09] https://ccmc.gsfc.nasa.gov/modelweb/
+%                                [10] https://ccmc.gsfc.nasa.gov/modelweb/
 % 
 %              geomH - Geometric (physical) height above mean sea level
 %                     (MSL) at which to evaluate air/gas properties. The
@@ -313,57 +315,74 @@ switch modelUpper
         % 2. varargout{2} = c; % Speed of sound [m/s]
         % 3. varargout{3} = mu; % Dynamic viscosity [Pa*s]
     case "US76"
-        % Enforce that at least 3 outputs are requested
-        if (nargout < 3)
-            error("Must request at least 3 outputs (d, T, p) for Jet model.")
-        end
         % Enforce that the requested altitude is appropriate for the Jet
         % model
         if (geomH > 86000)
             error("1976 U.S. Standard Atmosphere model is invalid for requested altitude (%1.0f m).", geomH)
         end
-        
+        g0 = 9.80665;
+        Reff = 6356766; % Effective radius of Earth ([01] pg. 4) [km]
         % Calculate geopotential altitude
-        Reff = 6356.766; % Effective radius of Earth ([01] pg. 4) [km]
-        geopH = convertGeometricHeightToGeopotentialHeight(Reff, 0.001*geomH);
+        geopH = convertGeometricHeightToGeopotentialHeight(Reff, geomH);
+        [d, T, p, c, mu] = atmosUS76("XUS76", geopH, Reff, g0);
         
-        % Calculate atmospheric properties at the given geopotential altitude
-        % Troposphere
-        if (geopH < 11)
-            TMolecular = 288.15 - 6.5 * geopH;
-            p = 101325 * (288.15 / TMolecular)^(-34.1632 / 6.5);
-        % Stratosphere
-        elseif (geopH <= 20)
-            TMolecular = 216.65;
-            p = 22632.06 * exp(-34.1632 * (geopH - 11) / TMolecular);
-        elseif (geopH <= 32)
-            TMolecular = 196.65 + geopH;
-            p = 5474.889 * (216.65 / (216.65 + (geopH - 20)))^(34.1632);
-        elseif (geopH <= 47)
-            TMolecular = 139.05 + 2.8 * geopH;
-            p = 868.0187 * (228.65 / (228.65 + 2.8 * (geopH - 32)))^(34.1632 / 2.8);
-        % Mesosphere
-        elseif (geopH <= 51)
-            TMolecular = 270.65;
-            p = 110.9063 * exp(-34.1632 * (geopH - 47) / TMolecular);
-        elseif (geopH <= 71)
-            TMolecular = 413.45 - 2.8 * geopH;
-            p = 66.93887 * (270.65 / (270.65 - 2.8 * (geopH - 51)))^(34.1632 / -2.8);
-        else %(so geopH <= 84.852),
-            TMolecular = 356.65 - 2 * geopH;
-            p = 3.95642 * (214.65 / (214.65 - 2 * (geopH - 71)))^(34.1632 / -2);
-        % Stop before the thermosphere
-        end
-        
-        % Calculate density from the state equation (ideal gas law)
-        Rair = 287.053; % Gas constant of dry air ([02], table 4)
-        d = p / (Rair*TMolecular);
-        
-        % Molecular temperature is the same as environmental temperature
-        T = TMolecular;
-        
+        % Assign pressure output
         varargout{1} = p;
         
+        % Perform additional calculations as requested by the number of
+        % outputs. For the jet model
+        % output #4: The speed of sound (c) 
+        % and out
+        if (nargout > 3)
+            [~, ~, ~, ~, Y] = getUS76BaseValues;
+            Rair = 287.058; % Gas constant for dry air
+            RairT = Rair*T;
+            % Calculate the speed of sound using the same state equation
+            c = sqrt(Y*RairT);
+            varargout{2} = c; % Speed of sound [m/s]
+            if (nargout > 4)
+                % Calculate dynamic viscosity according to Sutherland's law
+                mu = sutherland(T);
+                varargout{3} = mu; % Dynamic viscosity [Pa*s]
+            end
+        end
+    case "XUS76"
+        % Check if out of limits
+        if (geomH > 1e6)
+            error("Extended 1976 U.S. Standard Atmosphere model is invalid for requested altitude (%1.0f m).", geomH)
+        else
+            % Define parameters
+            Reff = 6356766;
+            g0 = 9.80665; 
+            geopH = convertGeometricHeightToGeopotentialHeight(Reff, geomH);
+            atmosXUS76(geopH, 9.80665)
+        end
+        
+        % Reference values given from US76 below 86,000 m
+        
+        
+        % Perform additional calculations as requested by the number of
+        % outputs. For the jet model
+        % output #4: The speed of sound (c)
+        % and out
+        if (nargout > 3)
+            Y = 1.4;
+            Rair = 287.058; % Gas constant for dry air
+            RairT = Rair*T;
+            % Calculate the speed of sound using the same state equation
+            c = sqrt(Y*RairT);
+            varargout{2} = c; % Speed of sound [m/s]
+            if (nargout > 4)
+                % Calculate dynamic viscosity according to Sutherland's law
+                mu = sutherland(T);
+                varargout{3} = mu; % Dynamic viscosity [Pa*s]
+            end
+        end
+        
+    case "XUS76NG"
+        % Extended 1976 U.S. Standard Atmosphere with variations of
+        % gravitational acceleration with respect to latitude (normal
+        % gravity)
     otherwise
         error("Atmosphere model '%s' not found.", model)
 end

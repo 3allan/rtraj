@@ -1,3 +1,14 @@
+%% Test if it's faster to check a condition than assign large variable
+tic
+if (1 > 2)
+end
+toc
+
+tic
+testx = rand(100, 1);
+toc
+
+
 %% Test how long it takes to get some variables
 tic
 for ii = 1:101
