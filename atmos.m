@@ -108,6 +108,8 @@ function [d, T, varargout] = atmos(model, geomH, varargin)
 %                                atmosphere (in that it is independent of
 %                                time and longitude/latitude) except it
 %                                serves as the international standard.
+%                                [11] https://en.wikipedia.org/wiki/...
+%                                     ...International_Standard_Atmosphere
 % 
 %         "Groves/Jacchia1971" - Provides a standard atmosphere that varies
 %                                with both time (time-of-year) and position
@@ -126,7 +128,7 @@ function [d, T, varargout] = atmos(model, geomH, varargin)
 %                                [03] http://braeunig.us/space/...
 %                                     ...atmmodel.htm#refatmos
 % 
-%                 "MIL-STD210" - Provides a nonstandard atmosphere obtained
+%                "MIL-STD210C" - Provides a nonstandard atmosphere obtained
 %                                by the Department of Defense (DoD) in
 %                                January 1987 from a portion of climatic 
 %                                data of the worldwide air environment.
@@ -157,7 +159,7 @@ function [d, T, varargout] = atmos(model, geomH, varargin)
 %                                and position (longitude/latitude). This 
 %                                model implicitly takes the Earth's shape 
 %                                to be a perfect sphere. This model is the
-%                                successor to MIL-STD210.
+%                                successor to MIL-STD210C.
 %                                Reference:
 %                                [04] >> doc atmosnonstd
 %                                Aerospace toolbox only.
@@ -232,6 +234,10 @@ function [d, T, varargout] = atmos(model, geomH, varargin)
 %                     Size: 1-by-1 (scalar)
 %                     Units: m (meters)
 % 
+%          varargin - See individual models for details.
+%                     Size: ?
+%                     Units: ?
+% 
 %    Outputs:
 % 
 %                 d - Air/gas density.
@@ -260,129 +266,256 @@ modelUpper = upper(model);
 % Implement atmosphere models
 switch modelUpper
     case "JET"
-        % Enforce that at least 3 outputs are requested
-        if (nargout < 3)
-            error("Must request at least 3 outputs (d, T, p) for Jet model.")
+        % Enforce that at most 5 outputs are requested
+        if (nargout > 5)
+            error("Must request no more than 5 outputs (d, T, p, c, mu) for Jet model.")
         end
         % Enforce that the requested altitude is appropriate for the Jet
         % model
-        if (geomH > 11000)
+        if (geomH > 11019)
             error("Jet model is invalid for requested altitude (%1.0f m).", geomH)
         end
         
-        % Define the Jet model algebraically by introducing standard US
-        % 1976 values
-        [g0, ~, p0, T0, Y] = getUS76BaseValues;
-        dTdgeopH = -0.0065; % Lapse rate [K/m]
-        Rair = 287.058; % Gas constant for dry air
-        
         % Don't bother converting to geopotential height - only 19 m
         % difference at 11 km altitude (~0.22% incurred error in doing so)
+        Reff = 6356766; % Effective radius of Earth ([01] pg. 4) [m]
         geopH = geomH;
         
-        % Calculate temperature according to linear variation with
-        % geopotential altitude
-        deltaT = dTdgeopH*geopH;
-        T = T0 + deltaT;
+        % Define the Jet model algebraically by introducing standard US
+        % 1976 values
+        [d, T, p, c, mu] = atmosXUS76(geopH, 9.80665, Reff);
         
-        % Calculate pressure according to hydrostatic equation
-        g0_over_aR = g0 / (dTdgeopH*Rair);
-        p = p0 * (1 + deltaT/T0)^-g0_over_aR;
+        % Assign variable outputs
         varargout{1} = p; % Pressure [Pa]
-        
-        % Calculate density according to the state equation
-        RairT = Rair*T;
-        d = p / RairT;
-        
-        % Perform additional calculations as requested by the number of
-        % outputs. For the jet model
-        % output #4: The speed of sound (c) 
-        % and out
-        if (nargout > 3)
-            % Calculate the speed of sound using the same state equation
-            c = sqrt(Y*RairT);
-            varargout{2} = c; % Speed of sound [m/s]
-            if (nargout > 4)
-                % Calculate dynamic viscosity according to Sutherland's law
-                mu = sutherland(T);
-                varargout{3} = mu; % Dynamic viscosity [Pa*s]
-            end
-        end
-        
-        % Review variable output arguments for reference of order (intended
-        % to be permanently commented)
-        % 1. varargout{1} = p; % Pressure [Pa]
-        % 2. varargout{2} = c; % Speed of sound [m/s]
-        % 3. varargout{3} = mu; % Dynamic viscosity [Pa*s]
+        varargout{2} = c; % Speed of sound [m/s]
+        varargout{3} = mu; % Dynamic viscosity [Pa*s]
     case "US76"
-        % Enforce that the requested altitude is appropriate for the Jet
+        % Enforce that at most 5 outputs are requested
+        if (nargout > 5)
+            error("Must request no more than 5 outputs (d, T, p, c, mu) for US76 model.")
+        end
+        % Enforce that the requested altitude is appropriate for the US76
         % model
         if (geomH > 86000)
             error("1976 U.S. Standard Atmosphere model is invalid for requested altitude (%1.0f m).", geomH)
         end
-        g0 = 9.80665;
-        Reff = 6356766; % Effective radius of Earth ([01] pg. 4) [km]
+        
         % Calculate geopotential altitude
+        Reff = 6356766; % Effective radius of Earth ([01] pg. 4) [m]
         geopH = convertGeometricHeightToGeopotentialHeight(Reff, geomH);
-        [d, T, p, c, mu] = atmosUS76("XUS76", geopH, Reff, g0);
         
-        % Assign pressure output
-        varargout{1} = p;
+        % Call upon the 1976 U.S. Standard Atmosphere
+        [d, T, p, c, mu] = atmosUS76(geopH, 9.80665, Reff);
         
-        % Perform additional calculations as requested by the number of
-        % outputs. For the jet model
-        % output #4: The speed of sound (c) 
-        % and out
-        if (nargout > 3)
-            [~, ~, ~, ~, Y] = getUS76BaseValues;
-            Rair = 287.058; % Gas constant for dry air
-            RairT = Rair*T;
-            % Calculate the speed of sound using the same state equation
-            c = sqrt(Y*RairT);
-            varargout{2} = c; % Speed of sound [m/s]
-            if (nargout > 4)
-                % Calculate dynamic viscosity according to Sutherland's law
-                mu = sutherland(T);
-                varargout{3} = mu; % Dynamic viscosity [Pa*s]
-            end
-        end
+        % Assign variable outputs
+        varargout{1} = p; % Pressure [Pa]
+        varargout{2} = c; % Speed of sound [m/s]
+        varargout{3} = mu; % Dynamic viscosity [Pa*s]
     case "XUS76"
-        % Check if out of limits
+        % Enforce that at most 5 outputs are requested
+        if (nargout > 5)
+            error("Must request no more than 5 outputs (d, T, p, c, mu) for XUS76 model.")
+        end
+        % Enforce that the requested altitude is appropriate for the XUS76
+        % model
         if (geomH > 1e6)
             error("Extended 1976 U.S. Standard Atmosphere model is invalid for requested altitude (%1.0f m).", geomH)
-        else
-            % Define parameters
-            Reff = 6356766;
-            g0 = 9.80665; 
-            geopH = convertGeometricHeightToGeopotentialHeight(Reff, geomH);
-            atmosXUS76(geopH, 9.80665)
         end
+        % Calculate geopotential altitude
+        Reff = 6356766; % Effective radius of Earth ([01] pg. 4) [m]
+        geopH = convertGeometricHeightToGeopotentialHeight(Reff, geomH);
         
-        % Reference values given from US76 below 86,000 m
+        % Call upon the 1976 U.S. Standard Atmosphere
+        [d, T, p, c, mu] = atmosUS76(geopH, 9.80665);
         
-        
-        % Perform additional calculations as requested by the number of
-        % outputs. For the jet model
-        % output #4: The speed of sound (c)
-        % and out
-        if (nargout > 3)
-            Y = 1.4;
-            Rair = 287.058; % Gas constant for dry air
-            RairT = Rair*T;
-            % Calculate the speed of sound using the same state equation
-            c = sqrt(Y*RairT);
-            varargout{2} = c; % Speed of sound [m/s]
-            if (nargout > 4)
-                % Calculate dynamic viscosity according to Sutherland's law
-                mu = sutherland(T);
-                varargout{3} = mu; % Dynamic viscosity [Pa*s]
-            end
-        end
-        
+        % Assign variable outputs
+        varargout{1} = p; % Pressure [Pa]
+        varargout{2} = c; % Speed of sound [m/s]
+        varargout{3} = mu; % Dynamic viscosity [Pa*s]
     case "XUS76NG"
+        % Distribute varargin
+        geodeticLatitude = varargin{1};
+        Req = varargin{2};
+        f = varargin{3};
+        
         % Extended 1976 U.S. Standard Atmosphere with variations of
         % gravitational acceleration with respect to latitude (normal
         % gravity)
+        [d, T, p, c, mu] = atmosXUS76NG(geomH, geodeticLatitude, Req, f);
+        
+        % Assign variable outputs
+        varargout{1} = p; % Pressure [Pa]
+        varargout{2} = c; % Speed of sound [m/s]
+        varargout{3} = mu; % Dynamic viscosity [Pa*s]
+    case "ISA"
+        % Enforce that at most 5 outputs are requested
+        if (nargout > 5)
+            error("Must request no more than 5 outputs (d, T, p, c, mu) for ISA model.")
+        end
+        % Enforce that the requested altitude is appropriate for the US76
+        % model
+        if (geomH > 86000)
+            error("International Standard Atmosphere model is invalid for requested altitude (%1.0f m).", geomH)
+        end
+        
+        % Calculate geopotential altitude
+        Reff = 6356766; % Effective radius of Earth (same radius as US76) [m]
+        geopH = convertGeometricHeightToGeopotentialHeight(Reff, geomH);
+        
+        % Call upon the International Standard Atmosphere (ISA)
+        [d, T, p, c, mu] = atmosISA(geopH, gSL);
+        
+        % Assign variable outputs
+        varargout{1} = p; % Pressure [Pa]
+        varargout{2} = c; % Speed of sound [m/s]
+        varargout{3} = mu; % Dynamic viscosity [Pa*s]
+    case "Groves/Jacchia1971"
+        error("Groves-Jacchia 1971 model not yet implemented.")
+    case "MIL-STD210C"
+        % Enforce that at most 5 outputs are requested
+        if (nargout > 5)
+            error("Must request no more than 5 outputs (d, T, p, c, mu) for MIL-STD210C model.")
+        end
+        % Enforce that the requested altitude is appropriate for the
+        % MIL-STD210C model
+        if (geomH > 2000000)
+            error("MIL-STD210C model is invalid for requested altitude (%1.0f m).", geomH)
+        end
+        
+        % Calculate geopotential altitude
+        Reff = 6356766; % Effective radius of Earth (same radius as US76) [m]
+        geopH = convertGeometricHeightToGeopotentialHeight(Reff, geomH);
+        
+        % Call on the MIL-STD210C atmosphere model
+        [T, c, p, d] = atmosnonstd(geopH, 'Profile', 'High density', ...
+                                    '5%', 5, 'warning', '210c');
+        
+        % Calculate dynamic viscosity according to Sutherland's law
+        mu = computeDynamicViscosity(T);
+        
+        % Assign variable outputs
+        varargout{1} = p; % Pressure [Pa]
+        varargout{2} = c; % Speed of sound [m/s]
+        varargout{3} = mu; % Dynamic viscosity [Pa*s]
+    case "MIL-HDBK310"
+        % Identical segment to MIL-STD210C except that the specification in
+        % atmosnonstd is '310' instead of '210c'
+        
+        % Enforce that at most 5 outputs are requested
+        if (nargout > 5)
+            error("Must request no more than 5 outputs (d, T, p, c, mu) for MIL-HDBK310 model.")
+        end
+        % Enforce that the requested altitude is appropriate for the
+        % MIL-HDBK310 model
+        if (geomH > 2000000)
+            error("MIL-HDBK310 model is invalid for requested altitude (%1.0f m).", geomH)
+        end
+        
+        % Calculate geopotential altitude
+        Reff = 6356766; % Effective radius of Earth (same radius as US76) [m]
+        geopH = convertGeometricHeightToGeopotentialHeight(Reff, geomH);
+        
+        % Call on the MIL-STD210C atmosphere model
+        [T, c, p, d] = atmosnonstd(geopH, 'Profile', 'High density', '5%', 5, 'warning', '310');
+        
+        % Calculate dynamic viscosity according to Sutherland's law
+        mu = computeDynamicViscosity(T);
+        
+        % Assign variable outputs
+        varargout{1} = p; % Pressure [Pa]
+        varargout{2} = c; % Speed of sound [m/s]
+        varargout{3} = mu; % Dynamic viscosity [Pa*s]
+    case "CIRA1986"
+        % Enforce that at most 6 outputs are requested
+        if (nargout > 6)
+            error("Must request no more than 6 outputs (d, T, p, c, mu, wind) for CIRA1986 model.")
+        end
+        % Enforce that the requested altitude is appropriate for the
+        % CIRA1986 model
+        if (geomH > 120000)
+            error("CIRA1986 model is invalid for requested altitude (%1.0f m).", geomH)
+        end
+        
+        % Distribute varargin
+        geodeticLat = varargin{1}; % Geodetic latitude [rad]
+        month = varargin{2}; % Numeric representation of the month 
+        %                           (Jan = 1, ..., Dec = 12)
+        
+        % Convert geodetic latitude to degrees
+        geodeticLatdeg = rad2deg(geodeticLat);
+        
+        % Calculate geopotential altitude
+        Reff = 6356766; % Effective radius of Earth (same radius as US76) [m]
+        geopH = convertGeometricHeightToGeopotentialHeight(Reff, geomH);
+        
+        % Call on the CIRA 1986 model - Note that its direct outputs are
+        % temperature, pressure and zonal wind (i.e. not density)
+        [T, p, wind] = atmoscira(geodeticLatdeg, 'GPHeight', geopH, ...
+                                  'monthly', month, 'warning');
+
+        % Compute density, speed of sound, and dynamic viscosity on our own
+        % using a constant specific gas constant of 287 J/kgK and the ideal
+        % gas law
+        Rair = 287;
+        d = p / (Rair * T); % Density [kg/m3]
+        c = sqrt(1.4*Rair*T); % Speed of sound [m/s]
+        mu = computeDynamicViscosity(T);
+        
+        % Assign variable outputs
+        varargout{1} = p; % Pressure [Pa]
+        varargout{2} = c; % Speed of sound [m/s]
+        varargout{3} = mu; % Dynamic viscosity [Pa*s]
+        varargout{4} = wind; % Zonal wind [m/s]
+    case "NRLMSISE00"
+        % Enforce that at most 2 outputs are requested
+        if (nargout > 2)
+            error("Must request no more than 2 outputs (d, T, p, c, mu) for NRLMSISE00 model.")
+        end
+        % Enforce that the requested altitude is appropriate for the
+        % NRLMSISE00 model
+        if (geomH > 1000000)
+            error("NRLMSISE00 model is invalid for requested altitude (%1.0f m).", geomH)
+        end
+        
+        % Distribute varargin
+        geodeticLat = varargin{1}; % Geodetic latitude [rad]
+        longitude = varargin{2}; % Longitude [rad]
+        year = varargin{3}; % Year
+        dayOfYear = varargin{4}; % Day of year (Jan 01 = 1, Dec 31 = 365)
+        UTseconds = varargin{5}; % Seconds passed since 00:00:000 UT in UK
+        
+        % Convert geodetic latitude and longitude to degrees
+        geodeticLatdeg = rad2deg(geodeticLat);
+        longitudedeg = rad2deg(longitude);
+        
+        % Define approximate local apparent solar time (NRLMSISE00
+        % indicates that a more accurate expression may be used, but it is
+        % of little importance/significance.
+        localApparentSolarTime = UTseconds/3600 + longitudedeg/15;
+        
+        % Call on the NRLMSISE-00 atmosphere model 
+        %   - No flags set (23 options available)
+        %   - Default units output in the density slot is kg/m3
+        [TxAlt, densities] = atmosnrlmsise00(geomH, geodeticLatdeg, ...
+                               longitudedeg, year, dayOfYear, UTseconds, ...
+                               localApparentSolarTime, 'Oxygen');
+                                
+        % Distribute the results
+        T = TxAlt(:, 2); % Environmental temperature (temperature at altitude) [K]
+        d = densities(:, 6); % Total mass density (for drag) [kg/m3]
+        
+        % Distribute the exospheric temperature and mass densities also
+        varargout{1} = TxAlt(:, 1); % Exospheric temperature [K]
+        varargout{2} = densities(:, 1); % Helium (He) density [1/m3]
+        varargout{3} = densities(:, 2); % Oxygen (O) density [1/m3]
+        varargout{4} = densities(:, 3); % Nitrogen (N2) density [1/m3]
+        varargout{5} = densities(:, 4); % Oxygen (O2) density [1/m3]
+        varargout{6} = densities(:, 5); % Argon (Ar) density [1/m3]
+        varargout{7} = densities(:, 7); % Helium (H) density [1/m3]
+        varargout{8} = densities(:, 8); % Nitrogen (N) density [1/m3]
+        varargout{9} = densities(:, 9); % Anom. Oxygen density [1/m3]
+    case "JB2008"
+            error("Atmosphere not yet implemented - missing gfortran")
     otherwise
         error("Atmosphere model '%s' not found.", model)
 end

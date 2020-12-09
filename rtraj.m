@@ -94,7 +94,6 @@ veps = 0; % Very small initial velocity [m/s]
 
 % Obtain parameters that define an Earth model
 [GM, Req, Rpo, f, e, w] = defineEllipsoidParameters('WGS84');
-Ravg = getEllipsoidAverageRadius(Req, Rpo, '++');
 [nG, mG, ~, Cnm, Snm, ~, ~] = loadGravitationalCoefficients(2190, 2159, 'tide-free');
 [Cnm, Snm] = updateGravitationalCoefficients(JDLaunch, nG, mG, Cnm, Snm); clear nG mG CnmGo SnmGo
 [nM, mM, gnm, hnm, dgnmdt, dhnmdt] = loadMagneticCoefficients(12, 12);

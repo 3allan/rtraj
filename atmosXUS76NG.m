@@ -1,5 +1,4 @@
-function [d, T, varargout] = atmosXUS76NG(geomH, nreqout, ...
-                                          geodeticLatitude, Req, f)
+function [d, T, p, c, mu] = atmosXUS76NG(geomH, geodeticLatitude, Req, f)
 % 
 % Matt Werner (m.werner@vt.edu) - Dec 6, 2020
 % 
@@ -18,14 +17,6 @@ function [d, T, varargout] = atmosXUS76NG(geomH, nreqout, ...
 %                     Size: 1-by-1 (scalar)
 %                     Units: m (meters)
 % 
-%           nreqout - Optional(!) Number of requested outputs. By default,
-%                     XUS76NG outputs only density (d) and environmental
-%                     temperature (T) if nreqout is omitted or 2, but will
-%                     also provide the speed of sound (c) and dynamic
-%                     viscosity (mu) if 3 or 4, respectively.
-%                     Size: 1-by-1 (scalar)
-%                     Units: - (N/A)
-% 
 %  geodeticLatitude - Optional(!) Geodetic latitude of a position on or
 %                     above the Earth's surface as referenced by the
 %                     ellipsoid. Specifying a geodetic latitude will
@@ -38,7 +29,11 @@ function [d, T, varargout] = atmosXUS76NG(geomH, nreqout, ...
 %                     geodetic latitude. Correspondingly, the gravitational
 %                     acceleration experienced at sea level will be chosen
 %                     to be value of normal gravity on the ellipsoid's
-%                     surface. Correspondingly, the geopotential altitude 
+%                     surface. The geopotential altitude is calculated
+%                     according to the spherical Earth of effective radius
+%                     Reff.
+%                     Size: 1-by-1 (scalar)
+%                     Units: - (radians)
 % 
 %    Outputs:
 % 
@@ -50,6 +45,10 @@ function [d, T, varargout] = atmosXUS76NG(geomH, nreqout, ...
 %                     Size: 1-by-1 (scalar)
 %                     Units: K (Kelvin)
 % 
+%                 p - Atmospheric pressure.
+%                     Size: 1-by-1 (scalar)
+%                     Units: Pa (Pascals)
+% 
 %         varargout - Additional outputs specified.
 %                     Size: ?
 %                     Units: ?
@@ -58,6 +57,11 @@ function [d, T, varargout] = atmosXUS76NG(geomH, nreqout, ...
 % Define the Extended 1976 U.S. Standard Atmosphere, but using an effective
 % Earth radius and normal gravitational acceleration
 Reff = computeEffectiveEarthRadius(geodeticLatitude, Req, f);
-g0 = computeNormalGravity(geodeticLatitude, 0, Req, f);
-% calculate geopotential height
-% call atmosUS76
+geopH = convertGeometricHeightToGeopotentialHeight(Reff, geomH);
+gSL = computeNormalGravity(geodeticLatitude, 0, Req, f);
+
+% Access the Extended 1976 U.S. Standard Atmosphere using this slightly
+% different definition of geopotential altitude and gravitational
+% acceleration at sea level, which are both dependent upon the geodetic
+% latitude of position.
+[d, T, p, c, mu] = atmosXUS76(geopH, gSL, Reff);
