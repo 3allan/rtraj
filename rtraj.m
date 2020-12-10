@@ -75,9 +75,16 @@ diaFlatDM = [36, 108] * in2m; % [flat drogue diameter, flat main diameter] [in] 
 massInit_ = [194.43, 65.33]; % [S1 initial mass, S2 initial mass] [kg]
 massMotor = [63.49, 23.58]; % [S1 motor mass, S2 motor mass] [kg]
 RSHxhaust = [1.25, 1.25]; % [S1 perfect (R)ratio of (S)pecific (H)eats, S2 perfect ratio of specific heats] []
-BurnSimFT = {csvread('csvs/S1SL.csv', 1, 0), csvread('csvs/S235.csv', 1, 0)}; % Obtain data from BurnSim csv files
-% Define rocket parameters (aerodynamics)
+burnTimes = [7.97, 5.09]; % [S1 burn time, S2 burn time] (takes precedence over max time in FTProfile) [s]
+FTProfile = {stripcsv('csvs/S1SL.csv', [1, 4], 1), stripcsv('csvs/S1SL.csv', [1, 4], 1)}; % Obtain data from BurnSim csv files
+FTUnits__ = {["s", "lbf"], ["s", "lbf"]}; % Units
+MFProfile = {stripcsv('csvs/S1SL.csv', [1, 6], 1), stripcsv('csvs/S135.csv', [1, 6], 1)}; % Mass flow rate
+MFUnits__ = {["s", "lb/s"], ["s", "lb/s"]}; % Units
+CPProfile = {NaN, NaN}; % Chamber pressure 
+MFUnits__ = {NaN, NaN}; % Units
+% Define rocket parameters (aerodynamics/geometry)
 RasAeroCd = {csvread('csvs/H7512.csv', 1, 0), csvread('csvs/H7522.csv', 1, 0)}; % Obtain data from RasAero csv files
+% ... geometry here
 % Define rocket parameters (staging behavior)
 delaySep_ = 2; % Time it takes for second stage to separate from first stage [s]
 delayIgn_ = 0; % Time it takes for second stage to fire after separation [s]
@@ -85,10 +92,11 @@ deployAlt = 609; % Altitude of main parachute deployment (2000 ft) [m]
 % Constants and measured quantities relevant to ODE initial conditions
 Rail2Rckt = diaOuter_(1)/2; % Perpendicular distance from rail to rocket's centerline [m]
 Rail2Vert = 5; % Angle made between railing and vertical [deg]
-East2Dwnr = 30; % Angle made between launch (downrange) direction and due East [deg]
+East2DwnR = 30; % Angle made between launch (downrange) direction and due East [deg]
 veps = 0; % Very small initial velocity [m/s]
 % Corrections and additional parameters
-% [, , csvs, burnTime, maxburnTime, ...
+
+% [burnTime, maxburnTime, ...
 %     referenceArea, throatArea, exitArea, parachuteArea, hpc] = additional
 %  Pick up here
 
