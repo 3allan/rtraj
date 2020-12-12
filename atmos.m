@@ -305,7 +305,7 @@ switch modelUpper
         geopH = convertGeometricHeightToGeopotentialHeight(Reff, geomH);
         
         % Call upon the 1976 U.S. Standard Atmosphere
-        [d, T, p, c, mu] = atmosUS76(geopH, 9.80665, Reff);
+        [d, T, p, c, mu] = atmosXUS76(geopH, 9.80665, Reff);
         
         % Assign variable outputs
         varargout{1} = p; % Pressure [Pa]
@@ -326,7 +326,7 @@ switch modelUpper
         geopH = convertGeometricHeightToGeopotentialHeight(Reff, geomH);
         
         % Call upon the 1976 U.S. Standard Atmosphere
-        [d, T, p, c, mu] = atmosUS76(geopH, 9.80665);
+        [d, T, p, c, mu] = atmosXUS76(geopH, 9.80665);
         
         % Assign variable outputs
         varargout{1} = p; % Pressure [Pa]

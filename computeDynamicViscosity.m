@@ -1,4 +1,4 @@
-function dynamicViscosity = sutherland(T)
+function dynamicViscosity = computeDynamicViscosity(T)
 % 
 % Matt Werner (m.werner@vt.edu) - Dec 5, 2020
 % 

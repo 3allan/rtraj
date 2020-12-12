@@ -90,7 +90,7 @@ geotype = lower(geotype);
 % geotype.
 switch geotype
     case "geodetic"
-        Rn = Req ./ sqrt(1 - (e*sind(geodeticLatitude))^2);
+        Rn = Req ./ sqrt(1 - (e*sin(latitude))^2);
     case "geocentric"
         cos2lat = cos(latitude).^2;
         sin2lat = sin(latitude).^2;
