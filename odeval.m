@@ -70,18 +70,24 @@ function f = odeval(t, x, pars)
 % 
 %    Inputs:
 % 
-%                 t - Integration time.
+%                 t - Flight time since the initial ignition of the motor
+%                     causing the rocket/flight vehicle to overcome its own
+%                     weight and begin traversing up the rail guide.
 %                     Size: 1-by-1 (scalar)
 %                     Units: s (seconds)
 % 
-%                 x - State.
+%                 x - State of the rocket/flight vehicle at the current
+%                     time. The state represents the current ENV
+%                     position/velocity, quaternion (orientation parameter)
+%                     and body-frame rotation rate expressed in the body
+%                     frame.
 %                     Size: 13-by-1 (vector)
 %                     Units: (3-by-1) m (meters)
 %                            (3-by-1) m/s (meters per second)
 %                            (4-by-1) - (N/A)
 %                            (3-by-1) rad/s (radians per second)
 % 
-%              args - Conglomeration of input arguments related to various
+%              pars - Conglomeration of input arguments related to various
 %                     rocket parameters. Rocket parameters required mainly 
 %                     include those related to determining the drag
 %                     coefficient.
@@ -91,7 +97,7 @@ function f = odeval(t, x, pars)
 %    Outputs:
 % 
 %                 f - Dynamics of the model.
-%                     Size: 13-by-1 (scalar)
+%                     Size: 13-by-1 (vector)
 %                     Units: (3-by-1) m/s (meters)
 %                            (3-by-1) m/s2 (meters per second)
 %                            (4-by-1) - (N/A)
@@ -100,53 +106,64 @@ function f = odeval(t, x, pars)
 % 
 
 %% Setup
+
+% Provide symbols to common elements
+r_env = x(1:3, 1);
+v_env = x(4:6, 1);
+quat = x(7:10, 1);
+w_body = x(11:13, 1);
+
+x_L = r_env(1); % Longitudinal ENV coordinate (L)ambda (east)
+x_P = r_env(2); % Geodetic latitudinal ENV coordinate (P)hi (north)
+x_H = r_env(3); % Ellipsoidal height ENV coordinate (H) (up)
+
 % Extract necessary elements
-% 
+% ----------------------------------------------
+% Ellipsoid equatorial radius (semimajor axis)
+Req = pars.ellipsoid.Req;
+% Ellipsoid eccentricity
+e = pars.ellipsoid.e;
 % Angular velocity of Earth's rotation along ENV axes
 w_env = pars.launchsite.w_env_rowvec';
-% 
 % Position of launch site relative to the ECF frame
 rLaunch_ecf = pars.launchsite.rLaunch_ecef_rowvec';
-%
 % Rotation matrices
 Tenv_ecf = pars.rotations.Tenv_ecf;
 Tecf_env = pars.rotations.Tecf_env;
-%
-% Gravity coefficients
+% Atmosphere model
+atmosModel = pars.atmosphericModel.atmosModel;
+tLaunchUTC = pars.time.tLaunchUTC;
+% Gravitational potential coefficients
 nG = pars.coefficients.gravity.nG;
 mG = pars.coefficients.gravity.mG;
 Cnm = pars.coefficients.gravity.Cnm;
 Snm = pars.coefficients.gravity.Snm;
-%
 % Thrust profile via HPC
 FThpc = pars.thrustProfile.FThpc;
-% 
-% Atmosphere model
-atmosModel = pars.atmosphericModel.atmosModel;
-
-% Provide symbols to common elements
-r_env = x(1:3);
-v_env = x(4:6);
-quat = x(7:10);
-w_body = x(11:13);
+% ----------------------------------------------
 
 %% Intermediate calculations
 
-% Obtain ECEF position of vehicle
+% Obtain current time (initial time + flight time)
+tCurrentUTC = tLaunchUTC + t/86400;
+% Get current (D)ay (O)f (Y)ear (UTC)
+tCurrentDOY = day(tCurrentUTC, 'dayofyear');
+% Get current (S)econds (O)f the (D)ay since 00:00:000 UTC
+tCurrentSOD = tCurrentUTC.Hour*86400 + tCurrentUTC.Minute*1440 + tCurrentUTC.Second;
+
+% Obtain ECF position of vehicle
 r_ecf = rLaunch_ecf + Tecf_env*r_env;
+x = r_ecf(1, 1);
+y = r_ecf(2, 1);
+z = r_ecf(3, 1);
 
-% Obtain spherical representation of the flight vehicle's current position
-% with respect to the ECEF frame
-recf = norm(r_ecf);
-lonecf = atan2(r_ecf(2), r_ecf(1));
-latecf = asin(r_ecf(3) / recf);
-colatecf = pi/2 - latecf;
-
-% Set up a reference ENV frame directly below the vehicle's position to
-% determine how high above MSL it is (approximate by placing h = 0 ?)
-
+% Obtain ellipsoidal representation of the flight vehicle's current
+% position with respect to the ECF frame
+[longitudeCurrent, geodeticLatCurrent, GPShCurrent] = TransformGeocentric2GeodeticCoordinates(x, y, z, Req, e);
 % Obtain atmospheric conditions
-[d, T] = atmos(atmosModel, 
+[d, T] = atmos(atmosModel, GPShCurrent, geodeticLatCurrent, longitudeCurrent, tCurrentUTC.Year, tCurrentDOY, tCurrentSOD);
+% Use ideal gas law to get the pressure (unchecked, use a different atmos model maybe)
+p = 287*d*T;
 
 %% Nominal Forces
 % Compute the nominal forces acting on the flight vehicle (weight, lift,
@@ -154,8 +171,15 @@ colatecf = pi/2 - latecf;
 % generally upon time, but also other effects like body-geometry, the
 % atmosphere, angle of attack, etc.
 
+% Obtain spherical representation of the flight vehicle's current position
+% with respect to the ECF frame
+rmagecf = norm(r_ecf);
+lonecf = atan2(r_ecf(2), r_ecf(1));
+latecf = asin(r_ecf(3) / rmagecf);
+colatecf = pi/2 - latecf;
+
 % Gravity (function doesn't yet exist)
-FG_geocentricSpherical = GradGraV(nG, mG, Cnm, Snm, recf, lonecf, latecf, GM, Req);
+FG_geocentricSpherical = GradGravityPotential(nG, mG, Cnm, Snm, rmagecf, lonecf, latecf, GM, Req);
 % Obtain transformation matrices
 Tcart_sphr = getTransformationSPHR2CARTCoordinates(lonecf, colatecf);
 % Transform from ECF spherical coordinates to ENV using a rotation

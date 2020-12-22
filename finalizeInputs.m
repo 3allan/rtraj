@@ -5,7 +5,15 @@
 flag_ProvidedMassFlowRate = 1; % User input includes nonlinear dmdt = f(t)
 flag_ProvidedChamberPressure = 1; % User input includes nonlinear pc = f(t)
 
+%% Staging
+stageNums = (1:numStages)';
+
 %% Propulsion
+% Define standard units to which the profiles must be converted
+FTProfileNewUnits = ["s", "N"];
+MFProfileNewUnits = ["s", "kg/s"];
+PCProfileNewUnits = ["s", "Pa"];
+
 % Correct thrust profile data from .csv file by removing excess data for
 % times indicated after the burn times according to "burnTimes" and then
 % ensure that the units are SI. Also ensure that the mass flow rate is
@@ -13,12 +21,13 @@ flag_ProvidedChamberPressure = 1; % User input includes nonlinear pc = f(t)
 for stage = stageNums'
     % Adjust thrust profile (necessary)
     FTProfile{stage}(FTProfile{stage}(:, 1) > burnTimes(stage, 1), :) = [];
-    FTProfile{stage} = convertxUnits(FTProfile{stage}, FTUnits__{stage}, ["s", "N"]);
+    FTProfile{stage} = convUnits(FTProfile{stage}, FTUnits__{stage}, FTProfileNewUnits);
+    FTUnits__{stage} = FTProfileNewUnits;
     
     % Adjust mass flow rate profile
     if (~all(isnan(MFProfile{stage})))
         MFProfile{stage}(MFProfile{stage}(:, 1) > burnTimes(stage, 1), :) = [];
-        MFProfile{stage} = convertxUnits(MFProfile{stage}, MFUnits__{stage}, ["s", "kg/s"]);
+        MFProfile{stage} = convUnits(MFProfile{stage}, MFUnits__{stage}, MFProfileNewUnits);
         % Ensure that the mass flow rate is negative
         MFProfile{stage}(:, 2) = -abs(MFProfile{stage}(:, 2));
     else
@@ -26,11 +35,13 @@ for stage = stageNums'
         MFProfile{stage} = -massMotor(stage)/burnTimes(stage);
         flag_ProvidedMassFlowRate = 0;
     end
+    MFUnits__{stage} = MFProfileNewUnits;
     
     % Adjust chamber pressure profile
     if (~all(isnan(PCProfile{stage})))
         PCProfile{stage}(PCProfile{stage}(:, 1) > burnTimes(stage, 1), :) = [];
-        PCProfile{stage} = convertxUnits(PCProfile{stage}, PCUnits__{stage}, ["s", "Pa"]);
+        PCProfile{stage} = convUnits(PCProfile{stage}, PCUnits__{stage}, PCProfileNewUnits);
+        PCUnits__{stage} = PCProfileNewUnits;
     else
         flag_ProvidedChamberPressure = 0;
     end
@@ -96,9 +107,69 @@ Tecf_env = Tenv_ecf';
 % Determine the ECEF position of the launch site based on the given inputs
 RNLaunch = computePrimeVerticalRadius(Req, e, LatLaunchrad, "geodetic");
 RNLaunch_plus_hLaunch = RNLaunch + ElevationGPS;
-xLaunch_ecf = RNLaunch_plus_hLaunch*cos(LatLaunchrad)*cos(LonLaunchrad);
-yLaunch_ecf = RNLaunch_plus_hLaunch*cos(LatLaunchrad)*sin(LonLaunchrad);
-zLaunch_ecf = ((1 - e^2)*RNLaunch + ElevationGPS)*sin(LatLaunchrad);
+[xLaunch_ecf, yLaunch_ecf, zLaunch_ecf] = TransformGeodetic2GeocentricCoordinates(ElevationGPS, LatLaunchrad, LonLaunchrad, Req, e);
 rLaunch_ecef = [xLaunch_ecf; yLaunch_ecf; zLaunch_ecf];
 rLaunch_ecef_rowvec = rLaunch_ecef';
 clear RNplush xLaunch_ecf yLaunch_ecf zLaunch_ecf
+
+%% ODE Initial conditions
+% Define ODE initial conditions while rocket is resting on the launch rail
+% before motor ignition
+[x0, v0, q0, w0] = deal(zeros(3, 1));
+q0(4, 1) = 1;
+xx0 = [x0; v0; q0; w0];
+% Define the initial time at which integration begins
+t0 = 0;
+% Define the final time at which integration ends
+tf = 2000;
+
+% Set options for ODE solver
+odeOpts = odeset('reltol', odereltol, 'abstol', odeabstol, ...
+                 'initialstep', odeinstep, 'maxstep', odemxstep, ...
+                 'stats', odestats_, 'refine', oderefine, ...
+                 'events', @odevents);
+
+%% Categorization
+% -----------------------------------------------------------------------
+% Place necessary variables into pars categorized by application and amount
+% of rows (tables require equal amounts of rows per structure) (structures
+% are accessed by . notation (Ex: pars.time.tLocalNow.TimeZone indicates
+% that 'pars' has a structure called 'time' which holds a value called
+% 'tLocalNow' which has a property called 'TimeZone')).
+% --- ODE ---
+pars.options.dynamics = table(HavePrtrb, CloneData, ShowPlots, Runtime__, ODEtime__);
+pars.options.numericalSolvers = table(odeOpts);
+% --- TIME ---
+pars.time = table(tLocalNow, JDLaunch, tLaunchUTC, tLaunch);
+% --- LAUNCH ---
+% Pass quantities to do with the launch time and initial orientation of the
+% rail with respect to the ENV frame.
+pars.launchsite = table(LonLaunch, LatLaunch, LonLaunchrad, LatLaunchrad, ... 
+                        ERA0, GMST0, LST0, ElevationGPS, ElevationMSL, ...
+                        localTemp, towerSpan, w_ecef_rowvec, w_env_rowvec, ...
+                        rLaunch_ecef_rowvec);
+pars.launchrail = table(Rail2Rckt, Rail2Vert, East2DwnR, veps);
+% --- FLIGHT VEHICLE ---
+% (geometric/phase-defining) together
+pars.rocket = table(stageNums, LenRocket, LenNoseCM, ...
+                    diaOuter_, diaThroat, diaExit__, diaFlatDM, ...
+                    massInit_, massMotor, Yexhaust_, burnTimes, ...
+                    delaySep_, delayIgn_, deployAlt);
+% --- PROPULSION ---
+pars.thrustProfile = table(FTProfile, FThpc); % thrust
+pars.massFlowRate = table(MFProfile, MFhpc); % mass flow rate
+pars.chamberPressure = table(PCProfile, PChpc); % chamber pressure
+% --- AERODYNAMICS ---
+pars.dragCoefficient = table(RasAeroCD); % drag coefficient
+% --- EARTH MODEL ---
+pars.ellipsoid = table(GM, Req, Rpo, f, e, w); % ellipsoid parameters
+pars.terrain.longitudes = table(longitudes); % longitudes of height maps
+pars.terrain.geodeticLatitudes = table(geodeticLatitudes); % geodetic latitudes of height maps
+pars.terrain.height = table(WGS84ToGeoid, GeoidToTerrain, WGS84ToTerrain); % height maps
+pars.coefficients.gravity = table(nG, mG, Cnm, Snm); % gravitational field potential harmonic coefficients
+pars.coefficients.magnetf = table(nM, mM, gnm, hnm); % magnetic field potential harmonic coefficients
+pars.atmosphericModel = table(atmosModel); % atmosphere model
+pars.rotations = table(Tenv_ecf, Tecf_env); % rotations
+% --- FLAGS ---
+pars.flags = table(flag_ProvidedMassFlowRate, flag_ProvidedChamberPressure);
+% -----------------------------------------------------------------------

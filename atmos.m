@@ -99,8 +99,7 @@ function [d, T, varargout] = atmos(model, geomH, varargin)
 %                                [01] NASA-TM-X-74335 (U.S. Standard
 %                                     Atmosphere, 1976)
 %                                     Doc ID: 19770009539
-%                                [02] http://braeunig.us/space/...
-%                                     ...atmmodel.htm#USSA1976
+%                                [02] http://braeunig.us/space/atmmodel.htm#USSA1976
 % 
 %                        "ISA" - Provides the International Standard
 %                                Atmosphere. This atmosphere is completely
@@ -108,8 +107,7 @@ function [d, T, varargout] = atmos(model, geomH, varargin)
 %                                atmosphere (in that it is independent of
 %                                time and longitude/latitude) except it
 %                                serves as the international standard.
-%                                [11] https://en.wikipedia.org/wiki/...
-%                                     ...International_Standard_Atmosphere
+%                                [11] https://en.wikipedia.org/wiki/International_Standard_Atmosphere
 % 
 %         "Groves/Jacchia1971" - Provides a standard atmosphere that varies
 %                                with both time (time-of-year) and position
@@ -125,8 +123,7 @@ function [d, T, varargout] = atmos(model, geomH, varargin)
 %                                above/below +/-70 degrees geodetic
 %                                latitude.
 %                                Reference:
-%                                [03] http://braeunig.us/space/...
-%                                     ...atmmodel.htm#refatmos
+%                                [03] http://braeunig.us/space/atmmodel.htm#refatmos
 % 
 %                "MIL-STD210C" - Provides a nonstandard atmosphere obtained
 %                                by the Department of Defense (DoD) in
@@ -171,8 +168,8 @@ function [d, T, varargout] = atmos(model, geomH, varargin)
 %                                and location (latitude). Thus, conditions
 %                                at a latitude are the same regardless of
 %                                physical time (time of day). It is defined
-%                                from 0 to 120,000 meters above mean sea
-%                                level (MSL) and for geodetic latitudes 
+%                                from 20,000 to 120,000 meters above mean
+%                                sea level (MSL) and for geodetic latitudes 
 %                                not exceeding +/-80 degrees.
 %                                *Committee on Space Research (COSPAR)
 %                                Reference:
@@ -198,11 +195,8 @@ function [d, T, varargout] = atmos(model, geomH, varargin)
 %                                   Radar Exosphere (MSISE)
 %                                References:
 %                                [06] >> doc atmosnrlmsise00
-%                                [07] https://ccmc.gsfc.nasa.gov/...
-%                                     ...modelweb/models/nrlmsise00.php
-%                                [08] https://www.nrl.navy.mil/ssd/...
-%                                     ...branches/7630/...
-%                                     ...modeling-upper-atmosphere
+%                                [07] https://ccmc.gsfc.nasa.gov/modelweb/models/nrlmsise00.php
+%                                [08] https://www.nrl.navy.mil/ssd/branches/7630/modeling-upper-atmosphere
 %                                Aerospace toolbox only.
 %                                
 %                     "JB2008" - Provides the Jacchia-Bowman Thermospheric
@@ -214,8 +208,7 @@ function [d, T, varargout] = atmos(model, geomH, varargin)
 %                                radio flux) values and magnetic field
 %                                indices.
 %                                References:
-%                                [09] https://sol.spacenvironment.net/...
-%                                     ...jb2008/
+%                                [09] https://sol.spacenvironment.net/jb2008/
 %                                Requires gfortran.
 % 
 %                              * A (brief) list of more atmosphere (and
@@ -416,7 +409,7 @@ switch modelUpper
         geopH = convertGeometricHeightToGeopotentialHeight(Reff, geomH);
         
         % Call on the MIL-STD210C atmosphere model
-        [T, c, p, d] = atmosnonstd(geopH, 'Profile', 'High density', '5%', 5, 'warning', '310');
+        [T, c, p, d] = atmosnonstd(geopH, 'Profile', 'High density', '10%', 5, 'warning', '310');
         
         % Calculate dynamic viscosity according to Sutherland's law
         mu = computeDynamicViscosity(T);
@@ -468,8 +461,8 @@ switch modelUpper
         varargout{4} = wind; % Zonal wind [m/s]
     case "NRLMSISE00"
         % Enforce that at most 2 outputs are requested
-        if (nargout > 2)
-            error("Must request no more than 2 outputs (d, T, p, c, mu) for NRLMSISE00 model.")
+        if (nargout > 9)
+            error("Must request no more than 9 outputs (see atmos.m) for NRLMSISE00 model.")
         end
         % Enforce that the requested altitude is appropriate for the
         % NRLMSISE00 model

@@ -1,4 +1,4 @@
-function y = convertUnits(x, units, newUnits)
+function y = convUnits(x, units, newUnits)
 % 
 % Matt Werner (m.werner@vt.edu) - Dec 9, 2020
 % 
@@ -11,43 +11,160 @@ function y = convertUnits(x, units, newUnits)
 %                 x - Quantity holding values of particular units that are
 %                     desired to be changed. The units of x are changed in
 %                     each column, i.e. column-wise.
-%                     Size: n-by-m (scalar)
-%                     Units: ?
+%                     Size: n-by-m (matrix)
+%                     Units: ? (current)
 % 
-%             units - Specified units of each column in x.
-%                     Size: 1-by-m (string)
+%             units - Specified units of each column in x. May be specified
+%                     as a single string along with `newUnits' to convert
+%                     every value in x using the same conversion factor.
+%                     Size: 1-by-m (or 1-by-1) (string)
 %                     Units: - (N/A)
 % 
 %          newUnits - Specified units of each column in x that the provided
-%                     values in x shall be converted to.
-%                     Size: 1-by-m (string)
+%                     values in x shall be converted to. May be specified
+%                     as a single string along with `units' to convert
+%                     every value in x using the same conversion factor.
+%                     Size: 1-by-m (or 1-by-1) (string)
 %                     Units: - (N/A)
 % 
+%    Outputs:
+% 
+%                 y - Quantities provided by x, but converted into the
+%                     desired units as indicated by newUnits.
+%                     Size: n-by-m (matrix)
+%                     Units: ? (new)
 
 % Check that inputs are strings
 checkInput(units, newUnits)
 
 % Leave if inputs are valid to Matlab (output unassigned)
 
+% Get number of columns of each input
+numColsOfx = size(x, 2);
+numColsofunits = size(units, 2);
+numColsofnewUnits = size(newUnits, 2);
+
+% Set a flag to indicate if all values in x are of the same units as
+% indicated by a single string input for current and new units but
+% matrix-valued x
+allValuesHaveTheSameUnits = false;
+
 % Check that sizes are compatible
-sizex = size(x);
-if (~all(sizex == size(units)) || ~all(sizex == size(newUnits)))
+if (numColsOfx > 1 && numColsofunits == 1 && numColsofnewUnits == 1)
+    allValuesHaveTheSameUnits = true;
+elseif (numColsOfx ~= numColsofunits || numColsOfx ~= numColsofnewUnits)
     error("Incompatabile sizes of quantities and units.")
 end
 
+% Determine if the entire matrix x is to be converted with consistent units
+% or if to do so column-wise.
+numUnitConvs = numColsOfx;
+if (allValuesHaveTheSameUnits)
+    numUnitConvs = 1;
+end
+
 % Allocate space to hold unit conversions
-unitmult = nan(1, size(x, 2));
+unitmult = nan(1, numUnitConvs);
 
 % Determine which unit conversions go where in `unitmult'
-for ii = 1:sizex
+for ii = 1:numUnitConvs
     % Lowercase inputs
     currentUnit = lower(units(ii));
     desiredUnit = lower(newUnits(ii));
     
     %% Time
-%     switch currentUnit
-%         case {"millisecond", "milliseconds", "ms"}
-%             switch desiredUnit
+    switch currentUnit
+        case {"millisecond", "milliseconds", "ms"}
+            switch desiredUnit
+                case {"millisecond", "milliseconds", "ms"}
+                    unitmult(ii) = 1;
+                case {"second", "seconds", "s"}
+                    unitmult(ii) = 0.001;
+                case {"minute", "minutes", "min"}
+                    unitmult(ii) = 1.6667e-5;
+                case {"hour", "hours", "hr"}
+                    unitmult(ii) = 2.77783333e-7;
+                case {"day", "days", "dy"}
+                    unitmult(ii) = 1.1574305541667e-8;
+                case {"week", "weeks", "wk"}
+                    unitmult(ii) = 1.653472220238142861e-9;
+            end
+        case {"second", "seconds", "s"}
+            switch desiredUnit
+                case {"millisecond", "milliseconds", "ms"}
+                    unitmult(ii) = 1000;
+                case {"second", "seconds", "s"}
+                    unitmult(ii) = 1;
+                case {"minute", "minutes", "min"}
+                    unitmult(ii) = 1/60;
+                case {"hour", "hours", "hr"}
+                    unitmult(ii) = 1/3600;
+                case {"day", "days", "dy"}
+                    unitmult(ii) = 1/86400;
+                case {"week", "weeks", "wk"}
+                    unitmult(ii) = 1/604800;
+            end
+        case {"minute", "minutes", "min"}
+            switch desiredUnit
+                case {"millisecond", "milliseconds", "ms"}
+                    unitmult(ii) = 60000;
+                case {"second", "seconds", "s"}
+                    unitmult(ii) = 60;
+                case {"minute", "minutes", "min"}
+                    unitmult(ii) = 1;
+                case {"hour", "hours", "hr"}
+                    unitmult(ii) = 1/60;
+                case {"day", "days", "dy"}
+                    unitmult(ii) = 1/1440;
+                case {"week", "weeks", "wk"}
+                    unitmult(ii) = 1/10080;
+            end
+        case {"hour", "hours", "hr"}
+            switch desiredUnit
+                case {"millisecond", "milliseconds", "ms"}
+                    unitmult(ii) = 3600000;
+                case {"second", "seconds", "s"}
+                    unitmult(ii) = 3600;
+                case {"minute", "minutes", "min"}
+                    unitmult(ii) = 60;
+                case {"hour", "hours", "hr"}
+                    unitmult(ii) = 1;
+                case {"day", "days", "dy"}
+                    unitmult(ii) = 1/24;
+                case {"week", "weeks", "wk"}
+                    unitmult(ii) = 1/168;
+            end
+        case {"day", "days", "dy"}
+            switch desiredUnit
+                case {"millisecond", "milliseconds", "ms"}
+                    unitmult(ii) = 86400000;
+                case {"second", "seconds", "s"}
+                    unitmult(ii) = 86400;
+                case {"minute", "minutes", "min"}
+                    unitmult(ii) = 1440;
+                case {"hour", "hours", "hr"}
+                    unitmult(ii) = 24;
+                case {"day", "days", "dy"}
+                    unitmult(ii) = 1;
+                case {"week", "weeks", "wk"}
+                    unitmult(ii) = 1/7;
+            end
+        case {"week", "weeks", "wk"}
+            switch desiredUnit
+                case {"millisecond", "milliseconds", "ms"}
+                    unitmult(ii) = 604800000;
+                case {"second", "seconds", "s"}
+                    unitmult(ii) = 604800;
+                case {"minute", "minutes", "min"}
+                    unitmult(ii) = 10080;
+                case {"hour", "hours", "hr"}
+                    unitmult(ii) = 168;
+                case {"day", "days", "dy"}
+                    unitmult(ii) = 7;
+                case {"week", "weeks", "wk"}
+                    unitmult(ii) = 1;
+            end
+    end
     
     %% Distance
     switch currentUnit
@@ -109,7 +226,7 @@ for ii = 1:sizex
                     unitmult(ii) = 0.000539957;
             end
         case {"kilometer", "kilometers", "km"}
-            switch desiredUnits
+            switch desiredUnit
                 case {"millimeter", "millimeters", "mm"}
                     unitmult(ii) = 1000000;
                 case {"centimeter", "centimeters", "cm"}
@@ -128,7 +245,7 @@ for ii = 1:sizex
                     unitmult(ii) = 0.539957;
             end
         case {"inch", "inches", "in"}
-            switch desiredUnits
+            switch desiredUnit
                 case {"millimeter", "millimeters", "mm"}
                     unitmult(ii) = 25.4;
                 case {"centimeter", "centimeters", "cm"}
@@ -147,7 +264,7 @@ for ii = 1:sizex
                     unitmult(ii) = 1.3715e-5;
             end
         case {"foot", "feet", "ft"}
-            switch desiredUnits
+            switch desiredUnit
                 case {"millimeter", "millimeters", "mm"}
                     unitmult(ii) = 304.8;
                 case {"centimeter", "centimeters", "cm"}
@@ -166,7 +283,7 @@ for ii = 1:sizex
                     unitmult(ii) = 0.000164579;
             end
         case {"mile", "miles", "mi"}
-            switch desiredUnits
+            switch desiredUnit
                 case {"millimeter", "millimeters", "mm"}
                     unitmult(ii) = 160934000;
                 case {"centimeter", "centimeters", "cm"}
@@ -185,7 +302,7 @@ for ii = 1:sizex
                     unitmult(ii) = 0.868976;
             end
         case {"nautical mile", "nautical miles", "nmi"}
-            switch desiredUnits
+            switch desiredUnit
                 case {"millimeter", "millimeters", "mm"}
                     unitmult(ii) = 1852000;
                 case {"centimeter", "centimeters", "cm"}
@@ -208,11 +325,64 @@ for ii = 1:sizex
     %% Speed
     
     %% Mass
+    switch currentUnit
+        case {"pound mass", "pounds mass", "lbm", "lb"}
+            switch desiredUnit
+                case {"kilogram", "kilograms", "kg"}
+                    unitmult(ii) = 0.453592;
+                case {"pound mass", "pounds mass", "lbm"}
+                    unitmult(ii) = 1;
+            end
+        case {"kilogram", "kilograms", "kg"}
+            switch desiredUnit
+                case {"kilogram", "kilograms", "kg"}
+                    unitmult(ii) = 1;
+                case {"pound mass", "pounds mass", "lbm", "lb"}
+                    unitmult(ii) = 2.20462;
+            end
+    end
     
     %% Mass Flow
+    switch currentUnit
+        case {"pound per second", "pounds per second", "lbps", "lb/s"}
+            switch desiredUnit
+                case {"kilogram per second", "kilogram per second", "kgps", "kg/s"}
+                    unitmult(ii) = 0.453592;
+                case {"pound per second", "pounds per second", "lbps", "lb/s"}
+                    unitmult(ii) = 1;
+            end
+        case {"kilogram per second", "kilogram per second", "kgps", "kg/s"}
+            switch desiredUnit
+                case {"kilogram per second", "kilogram per second", "kgps", "kg/s"}
+                    unitmult(ii) = 1;
+                case {"pound per second", "pounds per second", "lbps", "lb/s"}
+                    unitmult(ii) = 2.20462;
+            end
+    end
     
     %% Force
+    switch currentUnit
+        case {"newton", "newtons", "n"}
+            switch desiredUnit
+                case {"newton", "newtons", "n"}
+                    unitmult(ii) = 1;
+                case {"pound", "pounds", "lb", "lbf"}
+                    unitmult(ii) = 0.224809;
+            end
+        case {"pound", "pounds", "lb", "lbf"}
+            switch desiredUnit
+                case {"newton", "newtons", "n"}
+                    unitmult(ii) = 4.44822;
+                case {"pound", "pounds", "lb", "lbf"}
+                    unitmult(ii) = 1;
+            end
+    end                
     
     %% Energy
     
 end
+
+% Convert units by performing column-wise elemental multiplication, as in
+% apply each unit conversion factor in `unitmult' to each corresponding
+% column in the provided original quantities in `x'.
+y = x .* unitmult;

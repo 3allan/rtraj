@@ -49,7 +49,7 @@ ODEtime__ = true; % true/false - Show solver times at each time step
 
 %% Inputs
 % Obtain actual time right now
-tLocalNow = datetime(datetime, 'timezone', 'America/New_York');
+tLocalNow = datetime('now', 'timezone', 'America/New_York');
 % Obtain actual launch time as Julian date in UT1
 [JDLaunch, tLaunchUTC, tLaunch] = defineLaunchTime('15-July-2091 13:53:45.234', 'd-MMMM-yyyy HH:mm:ss.SSS', '-05:00');
 % Provide launch site location
@@ -58,34 +58,34 @@ LatLaunch = + 40.910733; % Geodetic latitude of launch site [deg]
 % Provide launch site temperature
 localTemp = 70; % Local surface temperature [F]
 % Define launch tower length
-towerSpan = 30 * ft2in * in2m; % Length of launch tower [ft] --> [in] --> [m]
+towerSpan = convUnits(30, "feet", "meters"); % Length of launch tower [m]
 % Define rocket parameters (lengths/distances)
-stageNums = (1:2)'; % Number of vehicle stages
-LenRocket = [6.35; 3.71]; % [Overall length during S1, Overall length during S2] [m]
-LenNoseCM = [4.15; 1.5]; % Distance from the nose cone's tip to the center of mass [m]
-diaOuter_ = [8.5; 6] * in2m; % [S1 outer diameter, S2 outer diameter] [in] --> [m]
-diaThroat = [2.5; 1.6] * in2m; % [S1 throat diameter, S2 throat diameter] [in] --> [m]
-diaExit__ = [6.01; 4.47] * in2m; % [S1 exit diameter, S2 exit diameter] [in] --> [m]
-diaFlatDM = [36, 108; 36, 108] * in2m; % [flat drogue diameter, flat main diameter] [in] --> [m]
+numStages = 2; % Number of vehicle stages
+LenRocket = [6.35; 3.71]; % Overall length of the rocket during each stage [m]
+LenNoseCM = [4.15; 1.50]; % Distance from the nose cone's tip to the center of mass of the fully fueled rocket for each stage [m]
+diaOuter_ = convUnits([8.50; 6.00], "inches", "meters"); % Rocket casing's outermost diameter for each stage [m]
+diaThroat = convUnits([2.50; 1.60], "inches", "meters"); % Nozzle throat diameter [m]
+diaExit__ = convUnits([6.01; 4.47], "inches", "meters"); % Nozzle exit diameter [m]
+diaFlatDM = convUnits([36, 108; 36, 108], "inches", "meters"); % Flattened drogue & main parachute diameters (0 indicates no chute) [m]
 % Define rocket parameters (propulsion)
-massInit_ = [194.43; 65.33]; % [S1 initial mass, S2 initial mass] [kg]
-massMotor = [63.49; 23.58]; % [S1 motor mass, S2 motor mass] [kg]
-burnTimes = [6.95; 5.09]; % [S1 burn time, S2 burn time] (takes precedence over max time in FTProfile) [s]
-FTProfile = {stripcsv('csvs/S1SL.csv', [1, 4], 1); stripcsv('csvs/S235.csv', [1, 4], 1)}; % Obtain data from BurnSim csv files
-FTUnits__ = {["s", "lbf"]; ["s", "lbf"]}; % Units
-MFProfile = {stripcsv('csvs/S1SL.csv', [1, 6], 1); stripcsv('csvs/S235.csv', [1, 6], 1)}; % Mass flow rate
-MFUnits__ = {["s", "lb/s"]; ["s", "lb/s"]}; % Units
-PCProfile = {NaN; NaN}; % Chamber pressure 
-PCUnits__ = {["NaN", "NaN"]; ["NaN", "NaN"]}; % Units
-Yexhaust_ = [1.25; 1.25]; % [S1 perfect ratio of specific heats, S2 perfect ratio of specific heats] []
+massInit_ = [194.43; 65.33]; % Initial mass of the rocket at the beginning of each burn time [kg]
+massMotor = [63.49; 23.58]; % Motor mass of each stage [kg]
+burnTimes = [6.95; 5.09]; % Burn time of each stage (takes precedence over max time in FTProfile) [s]
+FTProfile = {stripcsv('csvs/S1SL.csv', [1, 4], 1); stripcsv('csvs/S235.csv', [1, 4], 1)}; % Obtain thrust profile from BurnSim csv files
+FTUnits__ = {["s", "lbf"]; ["s", "lbf"]}; % Units of thrust profile
+MFProfile = {stripcsv('csvs/S1SL.csv', [1, 6], 1); stripcsv('csvs/S235.csv', [1, 6], 1)}; % Obtain mass flow rate profile from BurnSim csv files
+MFUnits__ = {["s", "lb/s"]; ["s", "lb/s"]}; % Units of mass flow rate
+PCProfile = {NaN; NaN}; % Obtain chamber pressure profile from BurnSim csv files
+PCUnits__ = {["NaN", "NaN"]; ["NaN", "NaN"]}; % Units of chamber pressure profile
+Yexhaust_ = [1.25; 1.25]; % Perfect ratio of specific heats for motor exhaust gases []
 % Define rocket parameters (aerodynamics/geometry)
-RasAeroCd = {csvread('csvs/H7512.csv', 1, 0); csvread('csvs/H7522.csv', 1, 0)}; % Obtain data from RasAero csv files
-% ... geometry here
+RasAeroCD = {csvread('csvs/H7512.csv', 1, 0); csvread('csvs/H7522.csv', 1, 0)}; % Obtain drag coeff. profile from RasAero csv files
+% ... geometry here to define our own CD profile
 % Define rocket parameters (staging behavior)
-delaySep_ = [2; NaN]; % Time it takes for second stage to separate from first stage [s]
-delayIgn_ = [0; NaN]; % Time it takes for second stage to fire after separation [s]
+delaySep_ = [2; NaN]; % Time it takes for stages to separate after burn-out [s]
+delayIgn_ = [0; NaN]; % Time it takes for stages to ignite after separation [s]
 % Define rocket parameters (controlled descent)
-deployAlt = [609; 609]; % Altitude of main parachute deployment (2000 ft) [m]
+deployAlt = convUnits([2000; 2000], "feet", "meters"); % Altitude of main parachute deployment [m]
 % Constants and measured quantities relevant to ODE initial conditions
 Rail2Rckt = diaOuter_(1)/2; % Perpendicular distance from rail to rocket's centerline [m]
 Rail2Vert = 5; % Angle made between railing and vertical [deg]
@@ -95,11 +95,11 @@ veps = 0; % Very small initial velocity [m/s]
 % Obtain parameters that define an Earth model
 [GM, Req, Rpo, f, e, w] = defineEllipsoidParameters('WGS84');
 [nG, mG, ~, Cnm, Snm, ~, ~] = loadGravitationalCoefficients(10, 5, 'tide-free');
-[Cnm, Snm] = updateGravitationalCoefficients(JDLaunch, nG, mG, Cnm, Snm); clear CnmGo SnmGo
+[Cnm, Snm] = updateGravitationalCoefficients(JDLaunch, nG, mG, Cnm, Snm);
 [nM, mM, gnm, hnm, dgnmdt, dhnmdt] = loadMagneticCoefficients(12, 12);
 [gnm, hnm] = updateMagneticCoefficients(JDLaunch, gnm, hnm, dgnmdt, dhnmdt); clear dgnmdt dhnmdt
 [longitudes, geodeticLatitudes, WGS84ToGeoid, GeoidToTerrain, WGS84ToTerrain] = loadTerrain('degrees');
-atmosModel = "NRLMSISE-00";
+atmosModel = "NRLMSISE00";
 % Obtain local Earth parameters
 ElevationGPS = fastinterp2(longitudes, geodeticLatitudes, WGS84ToTerrain, LonLaunch, LatLaunch);
 ElevationMSL = fastinterp2(longitudes, geodeticLatitudes, GeoidToTerrain, LonLaunch, LatLaunch);
@@ -109,98 +109,14 @@ ElevationMSL = fastinterp2(longitudes, geodeticLatitudes, GeoidToTerrain, LonLau
 % 
 % SCRIPT (sees entire workspace and adds to/changes it without explicitly
 % indicating outputs)
-correctionsToInputs
-
-% Define ODE initial conditions while rocket is resting on the launch rail
-% before motor ignition
-[x0, v0, q0, w0] = deal(zeros(3, 1));
-q0(4, 1) = 1;
-xx0 = [x0; v0; q0; w0];
-% Define the initial time at which integration begins
-t0 = 0;
-% Define the final time at which integration ends
-tf = 2000;
-
-% Place necessary variables into pars categorized by application and amount
-% of rows (tables require equal amounts of rows per structure) (structures
-% are accessed by . notation (Ex: pars.time.tLocalNow.TimeZone indicates
-% that 'pars' has a structure called 'time' which holds a value called
-% 'tLocalNow' which has a property called 'TimeZone')).
-% --- ODE ---
-pars.options = table(HavePrtrb, CloneData, ShowPlots, Runtime__, ODEtime__);
-% 
-% --- TIME ---
-pars.time = table(tLocalNow, JDLaunch, tLaunchUTC, tLaunch);
-% 
-% --- LAUNCH ---
-% Pass quantities to do with the launch time and initial orientation of the
-% rail with respect to the ENV frame.
-pars.launchsite = table(LonLaunch, LatLaunch, LonLaunchrad, LatLaunchrad, ... 
-                        ERA0, GMST0, LST0, ElevationGPS, ElevationMSL, ...
-                        localTemp, towerSpan, w_ecef_rowvec, w_env_rowvec, ...
-                        rLaunch_ecef_rowvec);
-% 
-pars.launchrail = table(Rail2Rckt, Rail2Vert, East2DwnR, veps);
-%
-% --- FLIGHT VEHICLE ---
-% (geometric/phase-defining) together
-pars.rocket = table(stageNums, LenRocket, LenNoseCM, ...
-                    diaOuter_, diaThroat, diaExit__, diaFlatDM, ...
-                    massInit_, massMotor, Yexhaust_, burnTimes, ...
-                    delaySep_, delayIgn_, deployAlt);
-% 
-% --- PROPULSION ---
-% thrust
-pars.thrustProfile = table(FTProfile, FThpc);
-% 
-% mass flow rate
-pars.massFlowRate = table(MFProfile, MFhpc);
-% 
-% chamber pressure
-pars.chamberPressure = table(PCProfile, PChpc);
-% 
-% --- AERODYNAMICS ---
-% drag coefficient
-pars.dragCoefficient = table(RasAeroCd);
-% 
-% --- EARTH MODEL ---
-% ellipsoid parameters
-pars.ellipsoid = table(GM, Req, Rpo, f, e, w);
-% 
-% longitudes of height maps
-pars.terrain.longitudes = table(longitudes);
-% 
-% geodetic latitudes of height maps
-pars.terrain.geodeticLatitudes = table(geodeticLatitudes);
-% 
-% height maps
-pars.terrain.height = table(WGS84ToGeoid, GeoidToTerrain, WGS84ToTerrain);
-% 
-% gravitational field potential harmonic coefficients
-pars.coefficients.gravity = table(nG, mG, Cnm, Snm);
-% 
-% magnetic field potential harmonic coefficients
-pars.coefficients.magnetf = table(nM, mM, gnm, hnm);
-% 
-% atmosphere model
-pars.atmosphericModel = table(atmosModel);
-%
-% rotations
-pars.rotations = table(Tenv_ecf, Tecf_env);
-% -----------------------------------------------------------------------
-
-% Set options for ODE solver
-options = odeset('reltol', odereltol, 'abstol', odeabstol, ...
-                 'initialstep', odeinstep, 'maxstep', odemxstep, ...
-                 'stats', odestats_, 'refine', oderefine, ...
-                 'events', @odevents);
+finalizeInputs
 
 % Model the trajectory of a multi-staged rocket launching from the ground
 % at some longitude and geodetic latitude as it flies through the
 % atmosphere
 [t, x, te, xe, ie] = deal(cell(stageNums(end), 1));
-for s = stageNums
-    [t{s}, x{s}, te{s}, xe{s}, ie{s}] = ode113(@(tdum, xdum) odeval(tdum, xdum, pars), [t0, tf], xx0);
+for s = stageNums'
+    [t{s}, x{s}, te{s}, xe{s}, ie{s}] = ode113(@(tdum, xdum) odeval(tdum, xdum, pars), [t0, tf], xx0, odeOpts);
     t0 = t{s}(end);
     xx0 = x{s}(end, :);
 end
