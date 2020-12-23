@@ -55,7 +55,7 @@ tLocalNow = datetime('now', 'timezone', 'America/New_York');
 % Provide launch site location
 LonLaunch = -119.0560102; % Longitude of launch site [deg]
 LatLaunch = + 40.910733; % Geodetic latitude of launch site [deg]
-% Provide launch site temperature
+% Provide launch site temperature and density
 localTemp = 70; % Local surface temperature [F]
 % Define launch tower length
 towerSpan = convUnits(30, "feet", "meters"); % Length of launch tower [m]
@@ -94,15 +94,15 @@ veps = 0; % Very small initial velocity [m/s]
 
 % Obtain parameters that define an Earth model
 [GM, Req, Rpo, f, e, w] = defineEllipsoidParameters('WGS84');
-[nG, mG, ~, Cnm, Snm, ~, ~] = loadGravitationalCoefficients(10, 5, 'tide-free');
+[nG, mG, ~, Cnm, Snm, ~, ~] = loadGravitationalCoefficients(1000, 1000, 'tide-free');
 [Cnm, Snm] = updateGravitationalCoefficients(JDLaunch, nG, mG, Cnm, Snm);
 [nM, mM, gnm, hnm, dgnmdt, dhnmdt] = loadMagneticCoefficients(12, 12);
 [gnm, hnm] = updateMagneticCoefficients(JDLaunch, gnm, hnm, dgnmdt, dhnmdt); clear dgnmdt dhnmdt
 [longitudes, geodeticLatitudes, WGS84ToGeoid, GeoidToTerrain, WGS84ToTerrain] = loadTerrain('degrees');
 atmosModel = "NRLMSISE00";
 % Obtain local Earth parameters
-ElevationGPS = fastinterp2(longitudes, geodeticLatitudes, WGS84ToTerrain, LonLaunch, LatLaunch);
-ElevationMSL = fastinterp2(longitudes, geodeticLatitudes, GeoidToTerrain, LonLaunch, LatLaunch);
+GPShLaunchsite = fastinterp2(longitudes, geodeticLatitudes, WGS84ToTerrain, LonLaunch, LatLaunch);
+MSLhLaunchsite = fastinterp2(longitudes, geodeticLatitudes, GeoidToTerrain, LonLaunch, LatLaunch);
 [ERA0, GMST0, LST0] = getRotAngsfromJDUT1(JDLaunch, deg2rad(LonLaunch));
 
 % Corrections and additional parameters
@@ -116,7 +116,7 @@ finalizeInputs
 % atmosphere
 [t, x, te, xe, ie] = deal(cell(stageNums(end), 1));
 for s = stageNums'
-    [t{s}, x{s}, te{s}, xe{s}, ie{s}] = ode113(@(tdum, xdum) odeval(tdum, xdum, pars), [t0, tf], xx0, odeOpts);
+    [t{s}, x{s}, te{s}, xe{s}, ie{s}] = ode113(@(tdum, xdum) odeval(tdum, xdum, pars, s), [t0, tf], x0, odeOpts);
     t0 = t{s}(end);
-    xx0 = x{s}(end, :);
+    x0 = x{s}(end, :);
 end

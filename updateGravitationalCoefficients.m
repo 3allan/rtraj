@@ -276,45 +276,48 @@ for mm = 0:2
     Snm(n == 4 & m == mm) = Snm(n == 4 & m == mm) - imag(DC4m_minus_iDS4m);
 end
     
-% Apply step 2 correction
-
-% Convert t to JC (TT) since J2000
-JDJ2000TT = getJulianDateofJ2000("TT");
-tJDTT = convertJulianDayClock(t, "UTC", "TT");
-tSinceJ2000JDTT = tJDTT - JDJ2000TT;
-tSinceJ2000JCTT = tSinceJ2000JDTT / 36525; % JC since J2000 (TT)
-% Assemble coefficients together for algebraic multiplication
-tvec = [1, tSinceJ2000JCTT, tSinceJ2000JCTT^2, tSinceJ2000JCTT^3, tSinceJ2000JCTT^4]';
-lvec = deg2rad([134.96340251, [1717915923.2178, 31.8792, 0.051635, -0.00024470]/3600]);
-lpvec = deg2rad([357.52910918, [129596581.0481, -0.5532, 0.000136, -0.00001149]/3600]);
-Fvec = deg2rad([93.27209062, [1739527262.8478, -12.7512, -0.001037, 0.00000417]/3600]);
-Dvec = deg2rad([297.85019547, [1602961601.2090, -6.3706, 0.006593, -0.00003169]/3600]);
-Ovec = deg2rad([125.04455501, [6962890.5431, 7.4722, 0.007702, -0.00005939]/3600]);
-% Compute the 5 Delaunay variables at time t in Dynamical time
-F = [lvec; lpvec; Fvec; Dvec; Ovec]*tvec;
-% Obtain the Greenwich Mean Sidereal Time (GMST)
-[~, GMST, ~] = getRotAngsfromJDUT1(t, nan);
-% Allocate space
-thetaf{1} = zeros(size(WeightsAndipop{1}, 1), 1);
-thetaf{2} = zeros(size(WeightsAndipop{2}, 1), 1);
-thetaf{3} = zeros(size(WeightsAndipop{3}, 1), 1);
-% Begin looping to make thetaf 
-for mm = 0:2
-    mmindx = mm + 1;
-    ip = WeightsAndipop{mmindx}(:, 10);
-    op = WeightsAndipop{mmindx}(:, 11);
-    Amp = ip + 1i*op;
-    for ii = 1:numel(thetaf{mmindx})
-        % Form row vector of weightings for this tidal frequency f
-        N = WeightsAndipop{mmindx}(ii, 3:7);
-        % Compute the angle theta for this tidal frequency f
-        thetaf{mmindx}(ii) = mm*(GMST + pi) - N*F;
-    end
-    % Start the step 2 correction now that we have everything for this m
-    DCnm_minus_iDSnm = (-1i)^mm * sum(Amp.*exp(1i*thetaf{mmindx}));
-    Cnm(n == 2 & m == mm) = Cnm(n == 2 & m == mm) + real(DCnm_minus_iDSnm);
-    Snm(n == 2 & m == mm) = Snm(n == 2 & m == mm) - imag(DCnm_minus_iDSnm);
-end
+% ==== Something very wrong in this section === %
+% Known: The multiplier (-1i)^mm is wrong, but there's more wrong with it
+% % Apply step 2 correction
+% 
+% % Convert t to JC (TT) since J2000
+% JDJ2000TT = getJulianDateofJ2000("TT");
+% tJDTT = convertJulianDayClock(t, "UTC", "TT");
+% tSinceJ2000JDTT = tJDTT - JDJ2000TT;
+% tSinceJ2000JCTT = tSinceJ2000JDTT / 36525; % JC since J2000 (TT)
+% % Assemble coefficients together for algebraic multiplication
+% tvec = [1, tSinceJ2000JCTT, tSinceJ2000JCTT^2, tSinceJ2000JCTT^3, tSinceJ2000JCTT^4]';
+% lvec = deg2rad([134.96340251, [1717915923.2178, 31.8792, 0.051635, -0.00024470]/3600]);
+% lpvec = deg2rad([357.52910918, [129596581.0481, -0.5532, 0.000136, -0.00001149]/3600]);
+% Fvec = deg2rad([93.27209062, [1739527262.8478, -12.7512, -0.001037, 0.00000417]/3600]);
+% Dvec = deg2rad([297.85019547, [1602961601.2090, -6.3706, 0.006593, -0.00003169]/3600]);
+% Ovec = deg2rad([125.04455501, [6962890.5431, 7.4722, 0.007702, -0.00005939]/3600]);
+% % Compute the 5 Delaunay variables at time t in Dynamical time
+% F = [lvec; lpvec; Fvec; Dvec; Ovec]*tvec;
+% % Obtain the Greenwich Mean Sidereal Time (GMST)
+% [~, GMST, ~] = getRotAngsfromJDUT1(t, nan);
+% % Allocate space
+% thetaf{1} = zeros(size(WeightsAndipop{1}, 1), 1);
+% thetaf{2} = zeros(size(WeightsAndipop{2}, 1), 1);
+% thetaf{3} = zeros(size(WeightsAndipop{3}, 1), 1);
+% % Begin looping to make thetaf 
+% for mm = 0:2
+%     mmindx = mm + 1;
+%     ip = WeightsAndipop{mmindx}(:, 10);
+%     op = WeightsAndipop{mmindx}(:, 11);
+%     Amp = ip + 1i*op;
+%     for ii = 1:numel(thetaf{mmindx})
+%         % Form row vector of weightings for this tidal frequency f
+%         N = WeightsAndipop{mmindx}(ii, 3:7);
+%         % Compute the angle theta for this tidal frequency f
+%         thetaf{mmindx}(ii) = mm*(GMST + pi) - N*F;
+%     end
+%     % Start the step 2 correction now that we have everything for this m
+%     DCnm_minus_iDSnm = (-1i)^mm * sum(Amp.*exp(1i*thetaf{mmindx}));
+%     Cnm(n == 2 & m == mm) = Cnm(n == 2 & m == mm) + real(DCnm_minus_iDSnm);
+%     Snm(n == 2 & m == mm) = Snm(n == 2 & m == mm) - imag(DCnm_minus_iDSnm);
+% end
+% ============================================= %
 
 % Step 3 only applies if using the zero-tide gravitational model
 % --> use tide-free for now

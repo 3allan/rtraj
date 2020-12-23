@@ -84,6 +84,7 @@ take a linear variation if no mass flow rate profile is provided, and
 information regarding the chamber pressure inside of the nozzle, which is not
 required. Providing the chamber pressure profile yields extra information
 about the gas flow in the nozzle.
+
 % ------------------------------------------------------------
 ASSUMPTIONS (not yet an exhaustive list)
 1. ...
