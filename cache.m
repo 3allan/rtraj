@@ -1,3 +1,6 @@
+% 
+% Matt Werner (m.werner@vt.edu) - Dec. 24, 2020
+% 
 % Cache system to improve the load time required to initialize a run of
 % rtraj. The most significant portion of time, by far, is spent in loading
 % the terrain.
