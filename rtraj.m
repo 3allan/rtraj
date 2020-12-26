@@ -1,8 +1,4 @@
-% OLVT - Trajectory and Analysis
-% Simulate ground-to-orbit trajectory of all rocket stages
-% Initially created - Oct 16, 2019
-% Reboot v7.0.0 - Nov 30, 2020
-% Current v7.0.7 - Dec 11, 2020
+% The (R)ocket (Traj)ectory Program (rtraj)
 % Matt Werner (m.werner@vt.edu)
 clearvars
 
@@ -11,19 +7,6 @@ clearvars
 % 2. Disable wrap-lines in Command Window preferences to view tables easily
 % 3. Automatically resets any settings changed by producing a run
 % 4. Requires Aerospace toolbox
-
-% Known problems
-% - Need to finish first before evaluating problems
-
-% To do:
-% 1. Consider fully replacing fastinterp2 and the terrain grids with simply
-%    the harmonic coefficients
-% 
-% 2. Evaluate the dynamics by finding the various quantities required to
-%    evaluate f(t, x) (like aoa, CD, L, torques, etc.) and precompute their
-%    expressions (on paper) to increase efficiency
-% 
-% 3. deval() - Can evaluate solution at points (useful for equal time step ?)
 
 % Options
 % The vector i:j with 0 < i < j < 9 means show phases i to j where

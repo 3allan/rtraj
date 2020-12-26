@@ -318,17 +318,17 @@ accel_centrifugal = cross(w_env, cross(w_env, r_env));
 accel_coriolis = 2*cross(w_env, v_env);
 accel_centrifugalPlusCoriolis = accel_centrifugal + accel_coriolis;
 
-%% 
+%% Evaluate Torque Acting on the Mass Center
 % ============== Aerodynamic Forces on Center of Pressure ================
 FatCP_bod = FD_bod + FL_bod + FW_bod;
 
 
-% =============================== Torques ================================
+% ============================== Torques =================================
 % Drag and lift act on the instantaneous center of pressure, creating a
 % torque about the instantaneous center of mass. For rigid-body motion,
 % these torques must be found in the body-fixed frame (which is very
 % convenient)
-% M1 = ..., M2 = ... M3 = ...
+% M1 = ..., M2 = ..., M3 = ...
 % (Each comes very simply from expressing r x F, where r extends from the
 % center of mass to the center of pressure (in the body frame) and the
 % force is F = (FD_bod + FL_bod) (expressed in the body frame of course).
