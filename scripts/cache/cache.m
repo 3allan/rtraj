@@ -10,5 +10,5 @@
 flag_loadTerrainMats = true;
 if (exist('GeoidToTerrain', 'var'))
     % Switch the flag to be false
-    falg_loadTerrainMats = false;
+    flag_loadTerrainMats = false;
 end
