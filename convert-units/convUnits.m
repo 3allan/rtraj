@@ -72,6 +72,24 @@ for ii = 1:numUnitConvs
     currentUnit = lower(units(ii));
     desiredUnit = lower(newUnits(ii));
     
+    %% Angle
+    switch currentUnit
+        case {"radian", "radians", "rad"}
+            switch desiredUnit
+                case {"radian", "radians", "rad"}
+                    unitmult(ii) = 1;
+                case {"degree", "degrees", "deg"}
+                    unitmult(ii) = 57.295779513082322864647721871734;
+            end
+        case {"degree", "degrees", "deg"}
+            switch desiredUnit
+                case {"radian", "radians", "rad"}
+                    unitmult(ii) = 0.017453292519943295769236907684886;
+                case {"degree", "degrees", "deg"}
+                    unitmult(ii) = 1;
+            end
+    end
+                    
     %% Time
     switch currentUnit
         case {"millisecond", "milliseconds", "ms"}
