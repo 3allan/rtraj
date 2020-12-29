@@ -36,5 +36,6 @@ end
 if (flag_loadTerrain)
     [longitudes, geodeticLatitudes, WGS84ToGeoid, GeoidToTerrain, WGS84ToTerrain] = loadTerrain(terrainAngleUnits);
 else
-    fprintf("Terrain cached from previous simulation.\n\n")
+    disp("Caching terrain...")
+    fprintf("Loaded terrain\n\n")
 end
