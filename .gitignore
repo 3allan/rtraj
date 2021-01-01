@@ -1,4 +1,9 @@
-csvs/
+# Ignore these directories
+/cache/
+/profiles/
 mats/
 deprecated/
-cache/previous_earth_model.mat
+harmonic-coefficients/*source/
+
+# Ignore these files
+*.asv
