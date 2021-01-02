@@ -1,9 +1,9 @@
 # Ignore these directories
 /cache/
 /profiles/
+/earth-model/**/*-source/
 mats/
 deprecated/
-harmonic-coefficients/*source/
 
 # Ignore these files
 *.asv

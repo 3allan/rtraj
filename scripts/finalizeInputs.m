@@ -21,13 +21,13 @@ PCProfileNewUnits = ["s", "Pa"];
 for stage = stageNums'
     % Adjust thrust profile (necessary)
     FTProfile{stage}(FTProfile{stage}(:, 1) > burnTimes(stage, 1), :) = [];
-    FTProfile{stage} = convUnits(FTProfile{stage}, FTUnits__{stage}, FTProfileNewUnits);
-    FTUnits__{stage} = FTProfileNewUnits;
+    FTProfile{stage} = convUnits(FTProfile{stage}, FTUnits{stage}, FTProfileNewUnits);
+    FTUnits{stage} = FTProfileNewUnits;
     
     % Adjust mass flow rate profile
     if (~all(isnan(MFProfile{stage})))
         MFProfile{stage}(MFProfile{stage}(:, 1) > burnTimes(stage, 1), :) = [];
-        MFProfile{stage} = convUnits(MFProfile{stage}, MFUnits__{stage}, MFProfileNewUnits);
+        MFProfile{stage} = convUnits(MFProfile{stage}, MFUnits{stage}, MFProfileNewUnits);
         % Ensure that the mass flow rate is negative
         MFProfile{stage}(:, 2) = -abs(MFProfile{stage}(:, 2));
     else
@@ -35,7 +35,7 @@ for stage = stageNums'
         MFProfile{stage} = -massMotor(stage)/burnTimes(stage);
         flag_ProvidedMassFlowRate = 0;
     end
-    MFUnits__{stage} = MFProfileNewUnits;
+    MFUnits{stage} = MFProfileNewUnits;
     
     % Create mass profile and prepare it to be pchipped
     expelledMass = cumtrapz(MFProfile{stage}(:, 1), MFProfile{stage}(:, 2));
@@ -44,13 +44,13 @@ for stage = stageNums'
     if (excessMass > 0)
         warning("Expelled mass exceeds indicated motor/fuel mass for stage $1.0f by %1.2f kg", stage, excessMass)
     end
-    TMProfile{stage, 1} = [MFProfile{stage}(:, 1), massInit_(stage) + expelledMass];
+    TMProfile{stage, 1} = [MFProfile{stage}(:, 1), massInit(stage) + expelledMass];
     
     % Adjust chamber pressure profile
     if (~all(isnan(PCProfile{stage})))
         PCProfile{stage}(PCProfile{stage}(:, 1) > burnTimes(stage, 1), :) = [];
-        PCProfile{stage} = convUnits(PCProfile{stage}, PCUnits__{stage}, PCProfileNewUnits);
-        PCUnits__{stage} = PCProfileNewUnits;
+        PCProfile{stage} = convUnits(PCProfile{stage}, PCUnits{stage}, PCProfileNewUnits);
+        PCUnits{stage} = PCProfileNewUnits;
     else
         flag_ProvidedChamberPressure = 0;
     end
@@ -60,10 +60,10 @@ clear expelledMass
 % Convert given diameters (easily measurable, but not used directly in the
 % process of obtaining the solution) to circular areas (not so easily
 % measurable, but used directly in the process of obtaining the solution)
-areaRefer = pi*diaOuter_.^2/4; % Reference area for drag [m2]
-areaThrt_ = pi*diaThroat.^2/4; % Area of the throat for propulsion [m2]
-areaExit_ = pi*diaExit__.^2/4; % Area of nozzle exit for adjusting thrust [m2]
-areaPara_ = pi*diaFlatDM.^2/8; % Inflated parachute area for drag on descent [m2]
+areaRefer = pi*diaOuter.^2/4; % Reference area for drag [m2]
+areaThrt  = pi*diaThroat.^2/4; % Area of the throat for propulsion [m2]
+areaExit  = pi*diaExit.^2/4; % Area of nozzle exit for adjusting thrust [m2]
+areaPara  = pi*diaFlatDM.^2/8; % Inflated parachute area for drag on descent [m2]
 
 % Obtain (H)ermite (P)olynomial (C)oefficients (HPC) for fast interpolation of
 % the thrust curve, mass flow rate, and chamber pressure (if provided) per
@@ -111,12 +111,18 @@ for stage = stageNums'
     else
         % Provide a nonzero offset due to burntimes, separation delays, and
         % ignition delays of previous stages
-        retardedPropTime(stage, 1) = burnTimes(1, 1:stage-1) + delaySep_(1, 1:stage-1) + delayIgn_(1, 1:stage-1);
+        retardedPropTime(stage, 1) = burnTimes(1, 1:stage-1) + delaySep(1, 1:stage-1) + delayIgn(1, 1:stage-1);
     end
 end
 
 
 %% Earth
+
+% Obtain local Earth parameters
+GPShLaunchsite = fastinterp2(longitudes, geodeticLatitudes, WGS84ToTerrain, LonLaunch, LatLaunch);
+MSLhLaunchsite = fastinterp2(longitudes, geodeticLatitudes, GeoidToTerrain, LonLaunch, LatLaunch);
+[ERA0, GMST0, LST0] = getRotAngsfromJDUT1(JDLaunch, deg2rad(LonLaunch));
+
 % Square the rate of angular rotation
 w2 = w^2;
 
@@ -155,6 +161,16 @@ rLaunch_ecef = [xLaunch_ecf; yLaunch_ecf; zLaunch_ecf];
 rLaunch_ecef_rowvec = rLaunch_ecef';
 clear RNplush xLaunch_ecf yLaunch_ecf zLaunch_ecf
 
+% %% Structures
+% % Determine the location of the fully wetted vehicle's center of mass
+% % relative to the body-fixed frame measured from the nose tip
+% wetMassCenterPosition_Nose = nan(3, 1, numStages);
+% for stage = stageNums'
+%     wetMassCenterPosition_Nose = [0, 0, -LenNoseCM(stage)];
+%     dryMassCenterPosition_Nose = 
+% end
+
+
 %% ODE Initial conditions
 % Define ODE initial conditions while rocket is resting on the launch rail
 % before motor ignition. The orientation is taken with respect to the ECI
@@ -177,8 +193,10 @@ quat_atLaunch = rod2quat(rod_atLaunch)';
 % Also get the initial position of the vehicle's mass center as an
 % offset away from the base of the launch rail
 % 
-% First, need another rotation matrix
+% First, need some more rotation matrices
 Tenv_dcv = Tdcv_env';
+Tdcv_rail = Trail_dcv';
+Tenv_rail = Tenv_dcv*Tdcv_rail;
 % Define the distance of the mass center from the base of the rocket before
 % ignition
 LenNozzleCM = LenRocket(1, 1) - LenNoseCM(1, 1);
@@ -187,10 +205,13 @@ LenNozzleCM = LenRocket(1, 1) - LenNoseCM(1, 1);
 q0 = [quat_atLaunch(2:4, 1); quat_atLaunch(1, 1)];
 % Determine the initial mass center position from the ENV origin (base of
 % the launch rail) expressed in ENV coordinates
-r0 = Tenv_dcv*[Rail2Rckt; 0; LenNozzleCM];
+r0 = Tenv_rail*[Rail2Rckt; 0; LenNozzleCM];
 
 % Initially, the rocket is stationary (neither translating nor rotating)
-[v0, w0] = deal(zeros(3, 1));
+w0 = zeros(3, 1);
+% Provide a perturbation from completely completely stationary for
+% numerical stability
+v0 = Tenv_rail*[0; 0; veps];
 x0 = [r0; v0; q0; w0];
 % Define the initial time at which integration begins
 t0 = 0;
@@ -204,8 +225,6 @@ odeOpts = odeset('reltol', odereltol, 'abstol', odeabstol, ...
                  'events', @odevents);
              
 %% Additional Rotations
-Tdcv_rail = Trail_dcv';
-Tenv_rail = Tenv_dcv*Tdcv_rail;
 Trail_env = Tenv_rail';
 Teci_ecf_atLaunch = Tecf_eci_atLaunch';
 
@@ -217,7 +236,7 @@ Teci_ecf_atLaunch = Tecf_eci_atLaunch';
 % that 'pars' has a structure called 'time' which holds a value called
 % 'tLocalNow' which has a property called 'TimeZone')).
 % --- ODE ---
-pars.options.dynamics = table(HavePrtrb, CloneData, ShowPlots, Runtime__, ODEtime__);
+pars.options.dynamics = table(HavePrtrb, CloneData, ShowPlots, Runtime, ODEtime);
 pars.options.numericalSolvers = table(odeOpts);
 % --- TIME ---
 pars.time = table(tLocalNow, JDLaunch, tLaunch, tLaunchUTC, tLaunchUTCYear, tLaunchUTCDOY, tLaunchUTCSOD);
@@ -231,10 +250,10 @@ pars.launchrail = table(Rail2Rckt, Rail2Vert, East2DwnR, veps);
 % --- FLIGHT VEHICLE ---
 % (geometric/phase-defining) together
 pars.rocket = table(stageNums, LenRocket, LenNoseCM, ...
-                    diaOuter_, diaThroat, diaExit__, diaFlatDM, ...
-                    areaRefer, areaThrt_, areaExit_, areaPara_, ...
-                    massInit_, massMotor, Yexhaust_, burnTimes, ...
-                    delaySep_, delayIgn_, retardedPropTime, deployAlt);
+                    diaOuter , diaThroat, diaExit  , diaFlatDM, ...
+                    areaRefer, areaThrt , areaExit , areaPara , ...
+                    massInit , massMotor, Yexhaust , burnTimes, ...
+                    delaySep , delayIgn , retardedPropTime, deployAlt);
 % --- PROPULSION ---
 pars.thrustProfile = table(FTProfile, FThpc); % thrust
 pars.massFlowRate = table(MFProfile, MFhpc); % mass flow rate

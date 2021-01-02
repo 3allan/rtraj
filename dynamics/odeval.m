@@ -141,7 +141,7 @@ mG = pars.coefficients.gravity.mG;
 Cnm = pars.coefficients.gravity.Cnm;
 Snm = pars.coefficients.gravity.Snm;
 % Initial masses of the whole stage and motor/fuel
-massInit_ = pars.rocket.massInit_;
+massInit = pars.rocket.massInit;
 massMotor = pars.rocket.massMotor;
 % Mass profile via HPC (during burning)
 TMhpc = pars.mass.TMhpc;
@@ -152,12 +152,12 @@ burnTimes = pars.rocket.burnTimes;
 % Thrust profile via HPC
 FThpc = pars.thrustProfile.FThpc;
 % Exit area
-areaExit_ = pars.rocket.areaExit_;
+areaExit = pars.rocket.areaExit;
 % Drag reference area
 areaRefer = pars.rocket.areaRefer;
 % ----------------------------------------------
 
-%% Intermediate calculations
+%% Time and Position
 
 % ============================== Time ==================================
 % Obtain current time (initial time + flight time)
@@ -200,6 +200,8 @@ geodeticLatCurrentDeg = rad2deg(geodeticLatCurrent);
 geoidUndulationCurrent = fastinterp2(pars.terrain.longitudes.longitudes, pars.terrain.geodeticLatitudes.geodeticLatitudes, pars.terrain.heights.WGS84ToGeoid, longitudeCurrentDeg, geodeticLatCurrentDeg);
 MSLhCurrent = GPShCurrent - geoidUndulationCurrent;
 
+%% Atmosphere
+
 % ========================== Atmosphere Model ============================
 % Obtain atmospheric conditions at altitude
 [altDensity, altTemperature] = atmos(atmosModel, MSLhCurrent, geodeticLatCurrent, longitudeCurrent, tCurrentUTC.Year, tCurrentDOY, tCurrentSOD);
@@ -228,10 +230,21 @@ Tenv_ecfsphr = Tenv_ecf*Tecf_ecfsphr;
 % frame using the 4 (four) quaternions (q1, q2, q3, q4) used within the
 % 13-by-1 state vector x.
 Tbod_eci = getTransformationRef2Body(quat);
+% 
+% Define the rotation matrix from the body-fixed frame to the noninertial
+% ECF frame via composition of previously defined rotation matrices
+Tbod_env = Tbod_eci*Teci_ecf*Tecf_env;
+Tenv_bod = Tbod_env';
+% 
+% Define the rotation matrix from the velocity frame to the body-fixed
+% frame using the angle of attack and "velocity roll" angle
+v_bod = Tbod_env*v_env; V = norm(v_bod);
+[angleOfAttack, angleBod2VelRot3Roll] = calculateAngleOfAttack(v_bod, V);
+Tbod_vel = getTransformationVel2Body(angleOfAttack, angleBod2VelRot3Roll);
 
 % ==================== Gravitational Acceleration ========================
 % Obtain spherical harmonic expression for the gravitational acceleration
-% experienced at the current position (ECF spherical basis)
+% experienced at the current position (ECF spherical basis) (EGM2008)
 accelGrav_ecfsphr = GradGravityPotential(3986004.415e8, 6378136.3, nG, mG, Cnm, Snm, rmagecf, longitude_ecf, geocentricLat_ecf);
 % Rotate the expression for gravitational acceleration from the ECF
 % spherical frame to the local launch ENV frame
@@ -254,7 +267,8 @@ g_env = accelGrav_env + accelCentModified_env;
 flag_isFiring = false;
 FT_env = zeros(3, 1);
 % If not firing, then the vehicle is coasting during this stage
-mass = massInit_(stage) - massMotor(stage);
+finalMass = massInit(stage) - massMotor(stage);
+mass = finalMass;
 % Define the time during which the rocket is producing thrust to propel
 % itself upwards
 tburnCurrent = max(0, t - retardedPropTime(stage));
@@ -264,39 +278,36 @@ if (tburnCurrent < burnTimes(stage))
     flag_isFiring = true;
     % Calculate the current mass via HPC interpolation
     mass = max(mass, ppval(TMhpc{stage}, tburnCurrent));
+    % Reobtain the expelled mass (first used in creating the HPC - faster
+    % to interpolate only once) Note: This quantity is nonpositive
+    expelledMass = mass - massInit(stage);
     % Interpolate into the thrust profile at this current burn time
     % ensuring impossibility of numerical anomalies providing negative
     % thrust
-    FT = max(0, ppval(FThpc{stage}, tburnCurrent) + (100000 - altPressure)*areaExit_(stage));
+    FT = max(0, ppval(FThpc{stage}, tburnCurrent) + (100000 - altPressure)*areaExit(stage));
     % The nozzles are NOT capable of thrust vectoring (no gimbaling).
     % Therefore, the thrust is directed completely along its body-frame 3-axis
     % which points from the center of mass directly out of the nosecone, which
     % is aligned with the direction of thrust. As such, the thrust provides no
     % amount of torque on the center of mass.
     FT_bod = [0; 0; FT];
-    % Obtain transformation matrices
-    Tbod_env = Tbod_eci*Teci_ecf*Tecf_env;
-    Tenv_bod = Tbod_env';
     % Transform from the body frame to the ENV frame
     FT_env = Tenv_bod*FT_bod;
 end
 
-
 % ================================ Drag ==================================
-% Compute (noninertial) velocity of the vehicle relative to the ground and
-% then square it
-V = norm(x(4:6));
+% Square the (noninertial) velocity of the vehicle relative to the ground
 Vsq = V^2;
 % Freestream dynamic pressure experienced by the vehicle at altitude
 Q = 0.5*altDensity*Vsq;
 % Determine the drag coefficient
-% CD = ...
+CD = 1;
 % Multiply the freestream dynamic pressure by the reference area 
 % >> The reference area MUST be consistent with the reference area used in
 % determining the drag coefficient CD <<
-Q_S = Q*areaRefer;
+Q_S = Q*areaRefer(stage);
 FD = Q_S*CD;
-FD_vel = [0, 0, -FD];
+FD_vel = [0; 0; -FD];
 % Obtain transformation matrix
 % aoa = ?, Tenv_vel = T(aoa, ?), which rotations to use ?
 % Transform from the velocity frame to the ENV frame
@@ -319,7 +330,20 @@ accel_coriolis = 2*cross(w_env, v_env);
 accel_centrifugalPlusCoriolis = accel_centrifugal + accel_coriolis;
 
 %% Evaluate Torque Acting on the Mass Center
+% ==================== Position of the Center of Mass ====================
+% Center of mass is calculated relative to the nose tip in the body-fixed
+% frame
+
+
+
+% ================== Position of the Center of Pressure ==================
+% Center of pressure is calculated relative to the nose tip in the
+% body-fixed frame
+
+
+
 % ============== Aerodynamic Forces on Center of Pressure ================
+return
 FatCP_bod = FD_bod + FL_bod + FW_bod;
 
 
@@ -337,6 +361,8 @@ FatCP_bod = FD_bod + FL_bod + FW_bod;
 rCGtoCP_bod = [xCP_bod; yCP_bod; zCP_bod];
 M_bod = cross(rCGtoCP_bod, FatCP_bod);
 
+
+
 % ============== Evaluate Time-Derivative of Inertia Matrix ===============
 
 
@@ -344,11 +370,25 @@ M_bod = cross(rCGtoCP_bod, FatCP_bod);
 %% Nonlinear Dynamics Model
 % Define the dynamics of the model - Accelerations are written in the
 % noninertial ENV frame such that
-% 1. f(1) = dx/dt                4. f(4) = d2x/dt2
-% 2. f(2) = dy/dt                5. f(5) = d2y/dt2
-% 3. f(3) = dz/dt                6. f(6) = d2z/dt2,
+% 01. f(01) = dx/dt               04. f(04) = d2x/dt2
+% 02. f(02) = dy/dt               05. f(05) = d2y/dt2
+% 03. f(03) = dz/dt,              06. f(06) = d2z/dt2,
 % where (x, y, z) are the position components of the flight vehicle
 % expressed along the ENV frame.
+% 
+% The kinetmatic rotation equation is 
+% 07. f(07) = dq1/dt
+% 08. f(08) = dq2/dt
+% 09. f(09) = dq3/dt
+% 10. f(10) = dq4/dt,
+% where (q1, q2, q3, q4) are the quaternion components describing the
+% orientation of the body-fixed frame relative to the inertial ECI frame.
+% 
+% Angular accelerations are written in the body-fixed frame utilizing
+% torques acting about the center of mass in the body-fixed frame as
+% 11. f(11) = dw1/dt
+% 12. f(12) = dw2/dt
+% 13. f(13) = dw3/dt,
 f = zeros(13, 1);
 f(1:3,   1) = v_env;
 f(4:6,   1) = mass\(FT_env + FD_env + FL_env) + g_env - accel_centrifugalPlusCoriolis;

@@ -5,6 +5,11 @@
 % thrust profile) of the flight vehicle.
 % 
 
+% Set default load behavior
+loadTheseFTProfiles = 1:numStages;
+loadTheseMFProfiles = 1:numStages;
+loadThesePCProfiles = 1:numStages;
+
 % Set default flags indicating that no cache currently exists and the
 % propulsion profiles determining motor/engine characteristics should be
 % loaded as if for the first time
@@ -41,10 +46,6 @@ catch error_CacheMiss
         otherwise
             rethrow(error_CacheMiss)
     end
-    % Default behavior when no cache exists
-    loadTheseFTProfiles = 1:numStages;
-    loadTheseMFProfiles = 1:numStages;
-    loadThesePCProfiles = 1:numStages;
     return
 end
 
