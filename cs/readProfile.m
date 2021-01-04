@@ -1,19 +1,22 @@
-function [vehicle, profile, stage, mass, ID, OD, Y, p, FT, flag] = ...
-    readThrustProfile(file)
+function [vehicle, stage, profile, func, flag, varargout] = readProfile(file)
 % 
-% Matt Werner (m.werner@vt.edu) - Jan 1, 2021
+% Matt Werner (m.werner@vt.edu) - Jan 3, 2021
 % 
-% Extract information provided within a propulsion file specifically
+% Extract information provided within a profile input file specifically
 % formatted to be compatible with rtraj. The information contained within
-% this file pertains ONLY the motor and not the surrounding body of the
-% rocket in any way. As such, mass refers to the (initial) motor mass
-% and, likewise, the inner-diameter (ID) and outer-diameter (OD) refer to
-% the (mean) inner diameter and the outer diameter of the solid motor as
-% measured from the motor's centerline, respectively. The (mean) ID is
-% requested to be used in determining the inertia matrix of the solid motor
-% while burning, which is assumed to be a BATES grain (hollow cylinder with
-% a cross-section consisting of two (2) concentric circles) for the
-% purpose of rotational dynamics.
+% this file must include AT LEAST the vehicle's name/identification, what
+% the profile to be provided actually is, and the stage during which the
+% profile is valid, and the profile itself.
+% 
+% - File extension must be text (.txt)
+% - File encoding must be UTF-8 without a BOM (byte order mark)
+% 
+% - '#' as the first character of the line indicates a comment
+% - '>' as the first character of the line indicates an input that is NOT
+%   the profile
+% - '' as the first character of the line indicates the profile input (the
+%   profile has no preceeding special character on every line) and its
+%   entries must be separated by the comma (',')
 % 
 % ======================== Summary of key symbols ========================
 % Comment: #
@@ -21,22 +24,22 @@ function [vehicle, profile, stage, mass, ID, OD, Y, p, FT, flag] = ...
 % Assignment: =
 % Units: ()
 % Pairing: ,
-% Estimate: ?
-% Percent: % (4.0d only)
+% Uncertainty: ?
+% Relative Uncertainty: %
 % 
 % ================================= Rules ================================
-%  Comments:
+%  - Comments:
 %  1.0 # is used as the FIRST character of a line to indicate that the line
 %        is to be used as a comment.
 %  1.1 An empty line is treated as a comment.
 % 
-%  Spacing:
+%  - Spacing:
 %  2.0 Spaces before the FIRST character are not read (a line of spaces is
 %        equivalent to an empty line).
 %  2.1 Spaces on either side of an assignment (=) and commas (,) are not
 %        read to arbitrary distance away.
 % 
-%  Input:
+%  - Input:
 %  3.0 > is used as the FIRST character of a line to indicate that the line
 %        is to be used for assigning a parameter. 
 %  3.1 Such a line beginning with > expects an assignment (=) to exist.
@@ -48,14 +51,13 @@ function [vehicle, profile, stage, mass, ID, OD, Y, p, FT, flag] = ...
 %        units (like 'm', 'kg', 's', 'N', etc. Also recognizes and accepts 
 %        (some) standard units (like 'ft', 'lb', 's', 'lbf', etc.) Note the
 %        distinction between lb (pounds, weight) and lbf (pounds, force).
-%  (Thrust profile)
-%  3.4 , is ONLY used to provide the thrust profile. The thrust profile is
-%        a comma-separated list with N rows and 2 columns, where the left
-%        column is populated with burn times (in units of seconds) of the
-%        motor and the right column indicates the associated thrust of the
-%        motor at some ambient pressure.
+%  3.4 , is ONLY used to provide the (csv) profile. The profile is a comma-
+%        separated list with N rows and 2 columns, where the left column is 
+%        populated with times (in units of seconds) and the right column is
+%        some function of time evaluated at the correspondingly paired
+%        times in the profile.
 % 
-% Estimation
+%  - Estimation:
 %  4.0 ? is used SUCCEEDING AN ASSIGNMENT (=) to indicate that the input is
 %        not precisely known and an estimate is to be used. 
 %        a) When used alone (eg X = ?), this estimate is constant and
@@ -85,89 +87,83 @@ function [vehicle, profile, stage, mass, ID, OD, Y, p, FT, flag] = ...
 %           where Y and Z are known, specified numbers.
 %        Note that units, provided by (), may still succeed all of the
 %        above cases.
+% ========================================================================
 % 
 %    Inputs:
 % 
-%              file - Path to the thrust profile file that provides
-%                     information regarding motor characteristics.
+%              file - Path to the profile filed.
 %                     Size: ?
 %                     Units: N/A
 % 
-%    Outputs: vehicle, profile, stage, mass, ID, OD, Y, FT
+%    Outputs:
 % 
-%           vehicle - Name of the rocket.
-%                     Size: ?
-%                     Units: N/A
-% 
-%           profile - Indicates the type AND units of profile being
-%                     supplied/prepared to read. For this particular
-%                     file, the profile should be assigned "THRUST"
-%                     followed by the corresponding units that the thrust
-%                     values carry.
+%           vehicle - Name of the vehicle. This quantity will be used to
+%                     ensure, granted that more than one profile is
+%                     provided for simulation, that the profiles are
+%                     compatible and meant to be used on the same vehicle.
 %                     Size: 1-by-1 (string)
-%                     Units: ?
+%                     Units: N/A
 % 
 %             stage - Stage number during which this motor is actively
 %                     burning.
 %                     Size: 1-by-1 (scalar)
 %                     Units: - (unitless)
 % 
-%              mass - Initial mass of the motor before ignition.
-%                     Size: 1-by-1 (scalar)
-%                     Units: kg (kilograms)
+%           profile - Provides a (very) short description of the intended
+%                     purpose that this file has along with units for the
+%                     function part (2nd column) of the provided profile,
+%                     if any. Unspecified units are interpreted that the
+%                     profile is unitless.
+%                     Size: 1-by-1 (string)
+%                     Units: ?
 % 
-%                ID - Inner diameter of the motor as measured from its
-%                     centerline.
-%                     Size: 1-by-1 (scalar)
-%                     Units: m (meters)
-% 
-%                OD - Outer diameter of the motor as measured from its
-%                     centerline.
-%                     Size: 1-by-1 (scalar)
-%                     Units: m (meters)
-% 
-%                 Y - Exhaust ratio of specific heats.
-%                     Size: 1-by-1 (scalar)
-%                     Units: - (unitless)
+%              func - Time-history (in seconds) of the quantity whose data
+%                     is to be interpolated at various times throughout the
+%                     interval. The profile is read from comma-separated
+%                     value (CSV) pairs of entries, where each entry is a
+%                     real number.
+%                     Size: n-by-2 (matrix)
+%                     Units: ?
 % 
 %              flag - Indicator that a Monte-Carlo simulation is requested
-%                     through the use of the ? operator
+%                     through the use of the ? operator.
+%                     Size: 1-by-1 (boolean)
+%                     Units: N/A
 % 
+%           
+% 
+
+% USER: Skip the first line if the encoding includes a BOM (byte order
+% mark). Use regular UTF-8 (without a BOM) to avoid issues in the first
+% line of the file
+
+% Open the file
+fid = fopen(file, 'r', 'n', 'UTF-8');
+
+% Check that the file isn't empty
+thisLine = fgetl(fid);
+if (thisLine == -1), error("File %s is empty", file), end
+% Reset to the beginning
+frewind(fid)
 
 % Set default flag to indicate that a Monte-Carlo simulation is not
 % requested
 flag = false;
 
-% Open the file
-fid = fopen(file, 'r', 'n', 'UTF-8');
-
-% Check if file is empty
-isEndOfFile = feof(fid);
-if (isEndOfFile)
-    error("Thrust profile is empty.")
-end
-
 % Get the number of lines in the file
 totalLineCount = getNumberOfLines(fid);
 
-% Reset the head back to the beginning since it was just moved to the end
-frewind(fid);
-
-% Skip the first line to avoid issues with the byte order mark (BOM) and
-% check if the first line was the file's only line
-thisLine = fgetl(fid);
-isEndOfFile = feof(fid);
-if (isEndOfFile)
-    error("No thrust profile provided.")
-end
-
 % Begin a counter to track the current line number
-ctr = 1; % Begin at 1 since the first line was skipped
+ctr = 0; % Begin at 0 since the pointer is at the beginning
 
-% Allocate memory for the thrust profile
-FT = NaN(totalLineCount, 2);
+% Allocate memory for the profile
+func = NaN(totalLineCount+2, 2);
+
+% Initiate counter for current number of variable outputs
+varargoutctr = 0;
 
 % Begin reading
+isEndOfFile = feof(fid);
 while (~isEndOfFile)
     % Get the current line and increment line counter
     thisLine = fgetl(fid);
@@ -217,7 +213,7 @@ while (~isEndOfFile)
         VAR = splitline{1};
         val = splitline{2};
         
-        % Ensure that the first element of var is not numeric
+        % Ensure that the first element of VAR is not numeric
         if (isstrprop(VAR(1), 'digit'))
             issueReadError("Variable cannot begin with digit", file, ctr)
         end
@@ -256,14 +252,14 @@ while (~isEndOfFile)
             units = '';
         end
         
-        % Handle ? wildcard by appending the default value or ABSOLUTE
-        % uncertainty (whichever is requested) along with a flag indicating
-        % whether a Monte-Carlo simulation is proper or not
+        % Handle ? wildcard by appending the default value or ABSOLUTE (no
+        % %) uncertainty (whichever is requested) along with a flag
+        % indicating whether a Monte-Carlo simulation is proper or not
         vals = strsplit(val, '?');
         numelVals = numel(vals);
         % Replace an uncertainty of 0 with no uncertainty
-        if (numelVals > 1 && (strcmp(vals{2}, '0') || strcmp(vals{2}, '0%')))
-            % Remove ? entirely and treat the input as perfect
+        if (numelVals == 2 && (strcmp(vals{2}, '0') || strcmp(vals{2}, '0%')))
+            % Remove the ? operator entirely
             vals(:, 2) = [];
         end
         % Find which entries are empty
@@ -282,43 +278,39 @@ while (~isEndOfFile)
                 % Otherwise (X = ??), the Monte-Carlo request is made
                 numQuestionMarks = numel(strfind(val, '?'));
                 if (numQuestionMarks == 1)
-                    error("Feature not yet implemented (missing default file)")
+                    error("Feature not yet implemented")
                     % Flag for Monte-Carlo is false by default
                 else
-                    error("Feature not yet implemented (missing default file)")
+                    error("Feature not yet implemented")
                     flag = true;
                 end
             elseif (emptyVals(1) && ~emptyVals(2))
-                % eg '> X = ?1'
-                % Default value requested with specified RELATIVE uncertainty
+                % egs '> X = ?1' (absolute uncertainty)
+                %     '> X = ?1%' (relative uncertainty)
+                % Default value requested with specified uncertainty
                 % (Monte-Carlo requested)
-                error("Feature not yet implemented (missing default file)")
+                requestingRelativeUncertainty = strcmp(vals{2}(end), '%');
+                error("Feature not yet implemented")
                 flag = true;
             elseif (~emptyVals(1) && emptyVals(2))
                 % eg '> X = 1?'
                 % Specified value given and requested default uncertainty
                 % (Monte-Carlo requested)
-                error("Feature not yet implemented (missing default file)")
+                
+                % Get default relative uncertainty from file and convert it
+                % to absolute uncertainty
+                %
+                % Default value here
+                %
+                changeRelativeToAbsoluteUncertainty()
+                error("Feature not yet implemented")
                 flag = true;
             else
                 % egs '> X = 2?1'
                 %     '> X = 2?1%' 
                 % Specified value given and specified uncertainty given
                 % (Monte-Carlo requested)
-                
-                % Check if % is specified at the end of the input
-                hasPercentOnEnd = strcmp(vals{2}(end), '%');
-                if (hasPercentOnEnd)
-                    % Override relative uncertainty with absolute
-                    % uncertainty by first removing %, converting to
-                    % arrays, and then performing the conversion to
-                    % absolute uncertainty
-                    vals{2} = vals{2}(1:end-1); % Remove %
-                end
-                VAL = cellfun(@str2num, vals); % Convert to numbers
-                if (hasPercentOnEnd)
-                    VAL(2) = VAL(1)*VAL(2)/100; % Convert to abs.
-                end
+                changeRelativeToAbsoluteUncertainty()
                 flag = true;
             end
         else
@@ -335,48 +327,24 @@ while (~isEndOfFile)
             end
         end
         
-        
-        % Assign quantities based on whether the value is
-        % unitless/nondimensional or dimensional
-        if (isempty(units))
-            % Match var name with select list of options for unitless
-            % inputs
-            switch VAR
-                case "VEHICLE"
-                    vehicle = VAL;
-                case "STAGE"
-                    stage = VAL;
-                case "EXHAUSTHEATCAPACITYRATIO"
-                    Y = VAL;
-                otherwise
-                    % Issue a warning that this input won't be used in
-                    % simulation
-                    warning("Unassigned input (%s: line %1.0f)", file, ctr)
-            end
-        else
-            % Match var name with select list of options for dimensional
-            % inputs
-            switch VAR
-                case "PROFILE"
-                    profile = [VAL, units];
-                case "MASS"
-                    mass = convUnits(VAL, units, "kg");
-                case "INNERDIAMETER"
-                    ID = convUnits(VAL, units, "m");
-                case "OUTERDIAMETER"
-                    OD = convUnits(VAL, units, "m");
-                case "AMBIENTPRESSURE"
-                    p = convUnits(VAL, units, "Pa");
-                otherwise
-                    % Issue a warning that this input won't be used in
-                    % simulation
-                    warning("Unassigned input (%s: line %1.0f)", file, ctr)
-            end
+        % Assign specific output (vehicle, profile, stage, and func) while
+        % using varargout for anything else indicated with >
+        switch upper(VAR)
+            case "VEHICLE"
+                vehicle = VAL;
+            case "STAGE"
+                stage = VAL;
+            case "PROFILE"
+                profile = VAL;
+                profileUnits = units;
+            otherwise
+                varargout{varargoutctr + 1} = VAL;
+                varargoutctr = varargoutctr + 1;
         end
     else
-        % Thrust profile
-        tFT_thisLine = strsplit(thisLine, ',');
-        FT(ctr, :) = cellfun(@str2num, tFT_thisLine);
+        % Profile
+        thisLine_timeAndFun = strsplit(thisLine, ',');
+        func(ctr, :) = cellfun(@str2num, thisLine_timeAndFun);
     end
     
     
@@ -384,16 +352,37 @@ while (~isEndOfFile)
     isEndOfFile = feof(fid);
 end
 
-% Remove any remaining NaN values from the thrust profile
-FT = FT(~isnan(FT));
+% Remove any remaining NaN values from the profile
+func = func(~isnan(func));
 % Reshape
-FT = reshape(FT, [numel(FT)/2, 2]);
-% Convert units of thrust (time is assumed to be in seconds)
-FT(:, 2) = convUnits(FT(:, 2), profile(1, 2), "N");
-% Remove units from the profile output since it has just been converted to
-% Newtons (SI)
-profile(:, 2) = [];
-
+func = reshape(func, [numel(func)/2, 2]);
+% Check if there was even a profile or if it was just a file of inputs
+% (without a profile)
+providedProfile = ~isempty(func);
+if (providedProfile)
+    % Convert units (time is assumed to be in seconds)
+    func(:, 2) = convUnits(func(:, 2), profileUnits, "SI");
+else
+    func = "Profile unprovided";
+end
 
 % Close the file
 fclose(fid);
+
+%% Function
+function changeRelativeToAbsoluteUncertainty()
+    % Check if % is specified at the end of the input
+    requestingRelativeUncertainty = strcmp(vals{2}(end), '%');
+    if (requestingRelativeUncertainty)
+        % Override relative uncertainty with absolute
+        % uncertainty by first removing %, converting to
+        % arrays, and then performing the conversion to
+        % absolute uncertainty
+        vals{2} = vals{2}(1:end-1); % Remove %
+    end
+    VAL = cellfun(@str2num, vals); % Convert to numbers
+    if (requestingRelativeUncertainty)
+        VAL(2) = VAL(1)*VAL(2)/100; % Convert to abs.
+    end
+end
+end
