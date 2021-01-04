@@ -37,10 +37,11 @@ function y = convUnits(x, units, newUnits)
 % Check that inputs are strings
 checkInput(units, newUnits)
 
-% Leave if inputs are valid to Matlab (output unassigned)
+% Leave the other checks/decisions to Matlab if inputs are valid
 
+sizex = size(x);
 % Get number of columns of each input
-numColsOfx = size(x, 2);
+numColsOfx = sizex(1, 2);
 numColsofunits = size(units, 2);
 numColsofnewUnits = size(newUnits, 2);
 
@@ -64,7 +65,7 @@ if (allValuesHaveTheSameUnits)
 end
 
 % Allocate space to hold unit conversions
-unitmult = nan(1, numUnitConvs);
+unitmult = NaN(1, numUnitConvs);
 
 % Determine which unit conversions go where in `unitmult'
 for ii = 1:numUnitConvs
@@ -76,14 +77,14 @@ for ii = 1:numUnitConvs
     switch currentUnit
         case {"radian", "radians", "rad"}
             switch desiredUnit
-                case {"radian", "radians", "rad"}
+                case {"radian", "radians", "rad", "si"}
                     unitmult(ii) = 1;
                 case {"degree", "degrees", "deg"}
                     unitmult(ii) = 57.295779513082322864647721871734;
             end
         case {"degree", "degrees", "deg"}
             switch desiredUnit
-                case {"radian", "radians", "rad"}
+                case {"radian", "radians", "rad", "si"}
                     unitmult(ii) = 0.017453292519943295769236907684886;
                 case {"degree", "degrees", "deg"}
                     unitmult(ii) = 1;
@@ -96,7 +97,7 @@ for ii = 1:numUnitConvs
             switch desiredUnit
                 case {"millisecond", "milliseconds", "ms"}
                     unitmult(ii) = 1;
-                case {"second", "seconds", "s"}
+                case {"second", "seconds", "s", "si"}
                     unitmult(ii) = 0.001;
                 case {"minute", "minutes", "min"}
                     unitmult(ii) = 1.6667e-5;
@@ -111,7 +112,7 @@ for ii = 1:numUnitConvs
             switch desiredUnit
                 case {"millisecond", "milliseconds", "ms"}
                     unitmult(ii) = 1000;
-                case {"second", "seconds", "s"}
+                case {"second", "seconds", "s", "si"}
                     unitmult(ii) = 1;
                 case {"minute", "minutes", "min"}
                     unitmult(ii) = 1/60;
@@ -126,7 +127,7 @@ for ii = 1:numUnitConvs
             switch desiredUnit
                 case {"millisecond", "milliseconds", "ms"}
                     unitmult(ii) = 60000;
-                case {"second", "seconds", "s"}
+                case {"second", "seconds", "s", "si"}
                     unitmult(ii) = 60;
                 case {"minute", "minutes", "min"}
                     unitmult(ii) = 1;
@@ -141,7 +142,7 @@ for ii = 1:numUnitConvs
             switch desiredUnit
                 case {"millisecond", "milliseconds", "ms"}
                     unitmult(ii) = 3600000;
-                case {"second", "seconds", "s"}
+                case {"second", "seconds", "s", "si"}
                     unitmult(ii) = 3600;
                 case {"minute", "minutes", "min"}
                     unitmult(ii) = 60;
@@ -156,7 +157,7 @@ for ii = 1:numUnitConvs
             switch desiredUnit
                 case {"millisecond", "milliseconds", "ms"}
                     unitmult(ii) = 86400000;
-                case {"second", "seconds", "s"}
+                case {"second", "seconds", "s", "si"}
                     unitmult(ii) = 86400;
                 case {"minute", "minutes", "min"}
                     unitmult(ii) = 1440;
@@ -171,7 +172,7 @@ for ii = 1:numUnitConvs
             switch desiredUnit
                 case {"millisecond", "milliseconds", "ms"}
                     unitmult(ii) = 604800000;
-                case {"second", "seconds", "s"}
+                case {"second", "seconds", "s", "si"}
                     unitmult(ii) = 604800;
                 case {"minute", "minutes", "min"}
                     unitmult(ii) = 10080;
@@ -192,7 +193,7 @@ for ii = 1:numUnitConvs
                     unitmult(ii) = 1;
                 case {"centimeter", "centimeters", "cm"}
                     unitmult(ii) = 0.1;
-                case {"meter", "meters", "m"}
+                case {"meter", "meters", "m", "si"}
                     unitmult(ii) = 0.001;
                 case {"kilometer", "kilometers", "km"}
                     unitmult(ii) = 0.000001;
@@ -211,7 +212,7 @@ for ii = 1:numUnitConvs
                     unitmult(ii) = 10;
                 case {"centimeter", "centimeters", "cm"}
                     unitmult(ii) = 1;
-                case {"meter", "meters", "m"}
+                case {"meter", "meters", "m", "si"}
                     unitmult(ii) = 0.01;
                 case {"kilometer", "kilometers", "km"}
                     unitmult(ii) = 0.00001;
@@ -230,7 +231,7 @@ for ii = 1:numUnitConvs
                     unitmult(ii) = 1000;
                 case {"centimeter", "centimeters", "cm"}
                     unitmult(ii) = 100;
-                case {"meter", "meters", "m"}
+                case {"meter", "meters", "m", "si"}
                     unitmult(ii) = 1;
                 case {"kilometer", "kilometers", "km"}
                     unitmult(ii) = 0.001;
@@ -249,7 +250,7 @@ for ii = 1:numUnitConvs
                     unitmult(ii) = 1000000;
                 case {"centimeter", "centimeters", "cm"}
                     unitmult(ii) = 100000;
-                case {"meter", "meters", "m"}
+                case {"meter", "meters", "m", "si"}
                     unitmult(ii) = 1000;
                 case {"kilometer", "kilometers", "km"}
                     unitmult(ii) = 1;
@@ -268,7 +269,7 @@ for ii = 1:numUnitConvs
                     unitmult(ii) = 25.4;
                 case {"centimeter", "centimeters", "cm"}
                     unitmult(ii) = 2.54;
-                case {"meter", "meters", "m"}
+                case {"meter", "meters", "m", "si"}
                     unitmult(ii) = 0.0254;
                 case {"kilometer", "kilometers", "km"}
                     unitmult(ii) = 2.54e-5;
@@ -287,7 +288,7 @@ for ii = 1:numUnitConvs
                     unitmult(ii) = 304.8;
                 case {"centimeter", "centimeters", "cm"}
                     unitmult(ii) = 30.48;
-                case {"meter", "meters", "m"}
+                case {"meter", "meters", "m", "si"}
                     unitmult(ii) = 0.3048;
                 case {"kilometer", "kilometers", "km"}
                     unitmult(ii) = 0.0003048;
@@ -306,7 +307,7 @@ for ii = 1:numUnitConvs
                     unitmult(ii) = 160934000;
                 case {"centimeter", "centimeters", "cm"}
                     unitmult(ii) = 160934;
-                case {"meter", "meters", "m"}
+                case {"meter", "meters", "m", "si"}
                     unitmult(ii) = 1609.34;
                 case {"kilometer", "kilometers", "km"}
                     unitmult(ii) = 1.60934;
@@ -325,7 +326,7 @@ for ii = 1:numUnitConvs
                     unitmult(ii) = 1852000;
                 case {"centimeter", "centimeters", "cm"}
                     unitmult(ii) = 185200;
-                case {"meter", "meters", "m"}
+                case {"meter", "meters", "m", "si"}
                     unitmult(ii) = 1852;
                 case {"kilometer", "kilometers", "km"}
                     unitmult(ii) = 1.852;
@@ -346,14 +347,14 @@ for ii = 1:numUnitConvs
     switch currentUnit
         case {"pound mass", "pounds mass", "lbm", "lb"}
             switch desiredUnit
-                case {"kilogram", "kilograms", "kg"}
+                case {"kilogram", "kilograms", "kg", "si"}
                     unitmult(ii) = 0.453592;
                 case {"pound mass", "pounds mass", "lbm"}
                     unitmult(ii) = 1;
             end
         case {"kilogram", "kilograms", "kg"}
             switch desiredUnit
-                case {"kilogram", "kilograms", "kg"}
+                case {"kilogram", "kilograms", "kg", "si"}
                     unitmult(ii) = 1;
                 case {"pound mass", "pounds mass", "lbm", "lb"}
                     unitmult(ii) = 2.20462;
@@ -364,14 +365,14 @@ for ii = 1:numUnitConvs
     switch currentUnit
         case {"pound per second", "pounds per second", "lbps", "lb/s"}
             switch desiredUnit
-                case {"kilogram per second", "kilogram per second", "kgps", "kg/s"}
+                case {"kilogram per second", "kilograms per second", "kgps", "kg/s", "si"}
                     unitmult(ii) = 0.453592;
                 case {"pound per second", "pounds per second", "lbps", "lb/s"}
                     unitmult(ii) = 1;
             end
-        case {"kilogram per second", "kilogram per second", "kgps", "kg/s"}
+        case {"kilogram per second", "kilograms per second", "kgps", "kg/s"}
             switch desiredUnit
-                case {"kilogram per second", "kilogram per second", "kgps", "kg/s"}
+                case {"kilogram per second", "kilograms per second", "kgps", "kg/s", "si"}
                     unitmult(ii) = 1;
                 case {"pound per second", "pounds per second", "lbps", "lb/s"}
                     unitmult(ii) = 2.20462;
@@ -380,7 +381,7 @@ for ii = 1:numUnitConvs
     
     %% Force
     switch currentUnit
-        case {"newton", "newtons", "n"}
+        case {"newton", "newtons", "n", "si"}
             switch desiredUnit
                 case {"newton", "newtons", "n"}
                     unitmult(ii) = 1;
@@ -389,7 +390,7 @@ for ii = 1:numUnitConvs
             end
         case {"pound", "pounds", "lb", "lbf"}
             switch desiredUnit
-                case {"newton", "newtons", "n"}
+                case {"newton", "newtons", "n", "si"}
                     unitmult(ii) = 4.44822;
                 case {"pound", "pounds", "lb", "lbf"}
                     unitmult(ii) = 1;
