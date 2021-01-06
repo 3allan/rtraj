@@ -1,0 +1,55 @@
+\contentsline {section}{\numberline {1}Preamble}{3}{section.1}%
+\contentsline {section}{\numberline {2}Good}{9}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Diagram of Unit Circle with Branch Cut on Positive Real Axis}{9}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Diagram of Spherical Coordinates}{10}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Comparing Perfect Circle with Rugged Ellipse}{14}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Flattening a Circle into an Ellipse and Defining Its Parameters}{15}{subsection.2.4}%
+\contentsline {subsection}{\numberline {2.5}Circumscribing an Ellipse with a Circle (Reduced Latitude)}{17}{subsection.2.5}%
+\contentsline {subsection}{\numberline {2.6}Position Measured on an Ellipse (Geocentric Latitude)}{19}{subsection.2.6}%
+\contentsline {subsection}{\numberline {2.7}Comparing Geocentric Latitude to Reduced Latitude}{20}{subsection.2.7}%
+\contentsline {subsection}{\numberline {2.8}Plot of Geocentric Latitudes Varying with the Flattening}{22}{subsection.2.8}%
+\contentsline {subsection}{\numberline {2.9}Ellipsoidal Coordinates}{24}{subsection.2.9}%
+\contentsline {subsection}{\numberline {2.10}East-North-Vertical Coordinates}{26}{subsection.2.10}%
+\contentsline {subsection}{\numberline {2.11}Comparing Geocentric and Geodetic Latitudes Varying with the Flattening}{30}{subsection.2.11}%
+\contentsline {subsection}{\numberline {2.12}Comparing Perfect Ellipse with Rugged Ellipse}{32}{subsection.2.12}%
+\contentsline {subsection}{\numberline {2.13}Local Gravity Depiction -- Height at Latitude is Not Exactly Aligned with Radius to the Earth's Center}{33}{subsection.2.13}%
+\contentsline {subsection}{\numberline {2.14}Comparing Ellipsoid to the Geoid to the Actual Topography of Earth's Surface}{34}{subsection.2.14}%
+\contentsline {subsection}{\numberline {2.15}Variation of Air's Ratio of Heat Capacity ($\gamma $) as a Function of Temperature}{36}{subsection.2.15}%
+\contentsline {subsection}{\numberline {2.16}Structural Overview of Rocket Body}{38}{subsection.2.16}%
+\contentsline {subsection}{\numberline {2.17}Solid Cone}{42}{subsection.2.17}%
+\contentsline {subsection}{\numberline {2.18}Conical Shell}{43}{subsection.2.18}%
+\contentsline {subsection}{\numberline {2.19}Parabolic Nose Cone}{46}{subsection.2.19}%
+\contentsline {subsection}{\numberline {2.20}Comparing Parabolic Cone to vK Ogive}{49}{subsection.2.20}%
+\contentsline {subsection}{\numberline {2.21}Elliptical Nose Cone}{51}{subsection.2.21}%
+\contentsline {subsection}{\numberline {2.22}Solid Cylinder}{53}{subsection.2.22}%
+\contentsline {subsection}{\numberline {2.23}Hollow Cylinder}{54}{subsection.2.23}%
+\contentsline {subsection}{\numberline {2.24}Hollow Frustum (Angled Hollow Cylinder)}{57}{subsection.2.24}%
+\contentsline {subsection}{\numberline {2.25}Propellant Within the Rocket Body}{60}{subsection.2.25}%
+\contentsline {subsection}{\numberline {2.26}Nozzle Flow Coordinates and Symbol Definitions}{63}{subsection.2.26}%
+\contentsline {subsection}{\numberline {2.27}Normal Shock in Nozzle}{65}{subsection.2.27}%
+\contentsline {subsection}{\numberline {2.28}Oblique Shock from Nozzle Lip}{68}{subsection.2.28}%
+\contentsline {subsection}{\numberline {2.29}Expansion Fan from Nozzle Lip}{71}{subsection.2.29}%
+\contentsline {subsection}{\numberline {2.30}Solid Cylinder of Propellant Grain}{75}{subsection.2.30}%
+\contentsline {subsection}{\numberline {2.31}Supersonic Conical Flow}{77}{subsection.2.31}%
+\contentsline {subsection}{\numberline {2.32}Rotated Coordinate Frames}{79}{subsection.2.32}%
+\contentsline {subsection}{\numberline {2.33}Fundamental Coordinate Rotations}{81}{subsection.2.33}%
+\contentsline {section}{\numberline {3}Bad}{84}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Diagram of J2000 Frame}{84}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Comparing Geocentric and Geodetic Latitude Varying with Height from Surface of Ellipsoid}{86}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Infinitesimal Element of Air to Derive Euler's Equation, Probably}{89}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Colored Ellipsoid in $r$}{91}{subsection.3.4}%
+\contentsline {section}{\numberline {4}Terrible (Graveyard)}{91}{section.4}%
+\contentsline {subsection}{\numberline {4.1}J2000 ECI and J2000 ECEF bases - the view is slightly scuffed just enough to matter and have to start over}{92}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}(failure) J2000 ECEF and SPHR bases - Couldn't figure out how to get 3d projections of both sphere and axes}{95}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Physics vs Math SPHR coords. - Didn't like - settled on words}{97}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Kind of failed attempt at 3D ellipse using pgfplots}{98}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}2D ellipse - didn't like it}{99}{subsection.4.5}%
+\contentsline {subsection}{\numberline {4.6}Playing around with pgfplots for 3D ellipse - too slow and not general enough}{101}{subsection.4.6}%
+\contentsline {subsection}{\numberline {4.7}Playing around with matlab2tikz}{102}{subsection.4.7}%
+\contentsline {subsection}{\numberline {4.8}Replaced this custom tikz with modified output from matlab2tikz}{110}{subsection.4.8}%
+\contentsline {subsection}{\numberline {4.9}Decided to put relation of geocentric/geodetic angle in instead - this plot doesn't tell really much}{112}{subsection.4.9}%
+\contentsline {subsection}{\numberline {4.10}This is what replaced the last one but this was taken out and its details were filled into a custom matlab2tikz axis settings made from before}{114}{subsection.4.10}%
+\contentsline {subsection}{\numberline {4.11}Subplots (2,1)}{116}{subsection.4.11}%
+\contentsline {subsection}{\numberline {4.12}Solid Cone}{121}{subsection.4.12}%
+\contentsline {subsection}{\numberline {4.13}Attempt at Trying to Plot Parabolic Nose Cone}{122}{subsection.4.13}%
+\contentsline {subsection}{\numberline {4.14}Skip here to bottom}{123}{subsection.4.14}%

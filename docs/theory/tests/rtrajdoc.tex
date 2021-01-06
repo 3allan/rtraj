@@ -1,0 +1,1464 @@
+\documentclass[11pt]{thesis}
+
+\RequirePackage{etex}
+% General packages
+\usepackage[utf8]{inputenc}       % Required for inputting international characters
+\usepackage[T1]{fontenc}          % Output font encoding for international characters
+%\usepackage{verbatim}             % Print literal in verbatim environment (no execution in environment)
+\usepackage{amsmath}              % Math
+\usepackage{amssymb}              % Math
+%\usepackage{amsthm}               % Math
+\usepackage{esint}                % Math
+\usepackage{physics}              % Math
+\usepackage[nointegrals]{wasysym} % Astronomical symbols
+\usepackage{siunitx}              % Units - Can also align tables by decimal point
+\usepackage{float}                % Force table to be placed HERE (\begin{figure}[H] ...)
+\usepackage{mathrsfs}             % Use \mathscr{} for fancy capital letters
+%\usepackage{graphicx}             % Insert pictures
+\usepackage{caption, subcaption}  % Caption for tables, figures, etc.
+%\usepackage{booktabs}             % Required for better horizontal rules in tables
+%\usepackage{array}                % Horizontal centering in tables
+%\usepackage{multicol}             % Many columns in tables
+\usepackage{dcolumn}              % Align decimals in column
+\usepackage[a4paper, bindingoffset=0.2 in, left=0.5 in, right=0.5 in, top = 1 in, bottom=1 in, footskip=.25 in]{geometry} % Paper size
+\usepackage{parskip}              % Skip lines with vertical whitespace (as anyone would expect)
+\usepackage{indentfirst}          % Automatically indent every paragraph
+%\usepackage{empheq}               % Box around results that take more than one line (\\ at end)
+%\usepackage[dvipsnames]{xcolor}   % Color text
+%\usepackage{listings}             % Produce code formatting and font
+%\usepackage{color}                % Color code according to a language (see settings below)
+\usepackage{fancyhdr}             % Control headers and foots
+\usepackage{chemformula}          % H20
+\usepackage{chngcntr}             % Control depth of counters (not toc)
+%\usepackage{textgreek}            % Use Greek letters in text mode (not math mode)
+\usepackage{tikz-3dplot}
+\usepackage{tabularx}
+\usepackage{tkz-euclide}
+\usepackage{longtable}
+\usepackage{slashed}
+\usepackage{listings}             % Produce code formatting and font
+\usepackage{color}                % Color code according to a language (see settings below)
+\usepackage{tabu}
+
+\usetikzlibrary{calc}
+\usetikzlibrary{arrows.meta,intersections}
+\usetkzobj{all}
+
+\newcommand{\shorteqnote}[1]{ &  & \text{\llap{#1}}}
+\def\centerarc[#1](#2)(#3:#4:#5)% Syntax: [draw options] (center) (initial angle:final angle:radius)
+    { \draw[#1] ($(#2)+({#5*cos(#3)},{#5*sin(#3)})$) arc (#3:#4:#5); }
+    
+% dcolumn package modifier
+\newcolumntype{.}{D{.}{.}{-1}}
+
+% General Modifiers
+% Direct to directory where images are stored
+\graphicspath{{images/}{../images/}}
+
+% Change default multiplier from {\times (x)} to {\cdot (.)}
+\sisetup{output-product = \cdot}   % Explicity state 'x' in \SI
+\sisetup{exponent-product = \cdot} % Implied multiplier with \SI{1e2}{...}
+
+% Table of contents shows all levels incl. paragraph
+\setcounter{tocdepth}{3}
+
+% Figure & table numbers are counted by subsection
+\counterwithin{figure}{section}
+\counterwithin{table}{section}
+
+% Allow chains of equations run across a page break
+\allowdisplaybreaks
+
+% Number equations by subsection
+\numberwithin{equation}{section}
+
+% Make fancy headers and footers
+\pagestyle{fancy} % Fancy
+%\rhead{\thesection}
+\setlength{\headheight}{13.6 pt}% ...at least 13.59999pt
+
+
+%\captionsetup[lstlisting]{margin=0cm,format=hang,font=small,format=plain,labelfont={bf,up},textfont={it}}
+%\renewcommand*{\lstlistingname}{Code \textcolor{violet}{\textsl{Mathematica}}}
+%
+%\definecolor{mygreen}{RGB}{28,172,0} % color values Red, Green, Blue
+%\definecolor{mylilas}{RGB}{170,55,241}
+%\definecolor{forblue}{RGB}{0,191,191}
+%\definecolor{gris245}{RGB}{245,245,245}
+%\definecolor{olive}{RGB}{50,140,50}
+%\definecolor{brun}{RGB}{175,100,80}
+%\definecolor{deepred}{rgb}{0.6,0,0}
+%\definecolor{deepgreen}{rgb}{0,0.5,0}
+%\definecolor{deepblue}{rgb}{0,0,0.5}
+%\definecolor{gray}{rgb}{0.2,0.2,0.2}
+%\definecolor{green}{rgb}{0,0.5,0.5}
+%
+%\lstset{frame=tb,
+%  language=Matlab, % Specifiy language
+%  aboveskip=3 mm,
+%  belowskip=3 mm,
+%  showstringspaces=false,
+%  columns=flexible,
+%  basicstyle={\small\ttfamily},
+%  numbers=none,
+%  numberstyle=\tiny\color{deepgreen},
+%  keywordstyle=\color{deepred},
+%  commentstyle=\color{gray},
+%  stringstyle=\color{yellow},
+%  breaklines=true,
+%  breakatwhitespace=true,
+%  tabsize=3
+%}
+%\lstset{
+%	tabsize=4,
+%	frame=single,
+%	language=Matlab,
+%	basicstyle=\scriptsize\ttfamily,
+%	keywordstyle=\color{blue},
+%	backgroundcolor=\color{gris245},
+%	commentstyle=\color{olive},
+%	showstringspaces=false
+%	}
+%\lstset{language=Matlab,%
+%    %basicstyle=\color{red},
+%    breaklines=true,%
+%    morekeywords={matlab2tikz},
+%    keywordstyle=\color{blue},%
+%    identifierstyle=\color{black},%
+%    stringstyle=\color{mylilas},
+%    commentstyle=\color{mygreen},%
+%    showstringspaces=false,%without this there will be a symbol in the places where there is a space
+%    numbers=left,%
+%    numberstyle={\tiny \color{black}},% size of the numbers
+%    numbersep=9pt, % this defines how far the numbers are from the text
+%    emph=[1]{for,end,break},emphstyle=[1]\color{forblue}, %some words to emphasise
+%    %emph=[2]{word1,word2}, emphstyle=[2]{style},    
+%}
+
+\begin{document}
+\begin{titlepage} % Suppresses displaying the page number on the title page and the subsequent page counts as page 1
+	\newcommand{\HRule}{\rule{\linewidth}{0.5mm}} % Defines a new command for horizontal lines, change thickness here
+	
+	\center % Centre everything on the page
+	
+	%------------------------------------------------
+	%	Headings
+	%------------------------------------------------
+	\textsc{\LARGE Virginia Polytechnic\\Institute And State University}\\[1.5cm] % Main heading such as the name of your university/college
+	
+	\textsc{\Large Orbital Launch Vehicle Team --- Trajectory and Analysis}\\[0.5cm] % Major heading such as course name
+	
+	\textsc{\large Critical Design Review Document}\\[0.5cm] % Minor heading such as course title
+	
+	%------------------------------------------------
+	%	Title
+	%------------------------------------------------
+	\HRule\\[0.4cm]%OG 0.4
+
+	{\huge\bfseries Two--Stage Rocket Motion Simulation}\\[0.0cm]%OG 0.4 % Title of your document
+	
+	\HRule\\[1.5cm]
+	
+	%------------------------------------------------
+	%	Author(s)
+	%------------------------------------------------
+%	\begin{minipage}{0.4\textwidth}
+%		\begin{flushleft}
+%			\large
+%			\textit{Author}\\
+%			M.A. \textsc{Werner} % Your name
+%		\end{flushleft}
+%	\end{minipage}
+%	~
+%	\begin{minipage}{0.4\textwidth}
+%		\begin{flushright}
+%			\large
+%			\textit{Supervisor}\\
+%			D.S. \textsc{Nelson} % Supervisor's name
+%		\end{flushright}	
+%	\end{minipage}
+	
+	% If you don't want a supervisor, uncomment the two lines below and comment the code above
+	{\large\textit{Author}}\\
+	M. A. \textsc{Werner} % Your name	
+	
+	%------------------------------------------------
+	%	Logo
+	%------------------------------------------------
+	\vfill\vfill
+%%%	\hspace*{0cm}\includegraphics[width=0.7\linewidth]{VTlogo.png}\\[4cm] % Include a department/university logo - this will require the graphicx package		
+
+	%------------------------------------------------
+	%	Date
+	%------------------------------------------------
+%	{\large August 31, 2019 \\~\\}
+	\vfill
+	{\large Fall -- Winter 2019} % Date, change the \today to a set date if you want to be precise
+	
+
+	
+	%\vfill\vfill
+	%\includegraphics[width=0.2\textwidth]{LMAPlogo.png}\\[1cm] % Include a department/university logo - this will require the graphicx package
+	 
+	%----------------------------------------------------------------------------------------
+	
+%	\vfill % Push the date up 1/4 of the remaining page
+\end{titlepage}
+\pagenumbering{roman}
+\tableofcontents
+\newpage
+\thispagestyle{fancy}
+\addcontentsline{toc}{chapter}{List of Symbols}
+\chapter*{List of Symbols}
+\addcontentsline{toc}{section}{Matlab}
+\section*{Matlab}
+%\addcontentsline{toc}{subsection}{Inputs}
+\subsection*{-- Inputs --}
+%\addcontentsline{toc}{subsubsection}{Switches}
+\subsubsection*{Switches}
+\begin{longtable}[l]{l l}
+\texttt{odestats}    & Show solver statistics \\
+\texttt{oderefine}   & Amount of points to interpolate between time steps \\
+\texttt{odereltol}   & Solver relative tolerance \\
+\texttt{odeabstol}   & Solver absolute tolerance \\
+\texttt{odemaxdt}    & Solver maximum time step\\
+\texttt{tableseqs}   & Range of sequences to display in tables \\
+\texttt{plotseqs}    & Range of sequences to display in plot \\
+\texttt{angleu}      & Units of angles to display in plots \\
+\texttt{SampleTable} & Display a short table \\
+\texttt{FullTable}   & Display the full table \\
+\texttt{DispTable}   & Display the table for a desired range of sequences \\
+\texttt{Plots}       & Show plots \\
+\texttt{RealTime}    & Show runtime \\
+\texttt{ODEsTime}    & Show solver integration time \\
+\texttt{Stochastics} & Consider Brownian motion \\
+\texttt{StochasticN} & Consider bounded limit on randomly determined stochastic variable
+\end{longtable}
+%\addcontentsline{toc}{subsubsection}{Parameters}
+\subsubsection*{Parameters}
+\begin{longtable}[l]{l l}
+\texttt{n} & Stochastic variable bound \\
+\texttt{nMax} & Bound on randomly determined \texttt{n} \\
+\texttt{lat} & Geodetic latitude of launch site \\
+\texttt{elev} & Elevation above sea level of launch site \\
+\texttt{T0} & Ground-level temperature at launch site \\
+\texttt{Ltower} & Length of launch tower \\
+\texttt{L} & Length of launch vehicle \\
+\texttt{fn} & Fin number \\
+\texttt{fw} & Fin width \\
+\texttt{fz} & Fin depth\\
+\texttt{od} & Outer diameter \\
+\texttt{mf} & Fuel mass \\
+\texttt{m0} & Initial mass \\
+\texttt{tbFT} & Thrust as a function of burn time \\
+\texttt{MaCd} & Drag coefficient as a function of Mach number \\
+\texttt{delay} & Time to coast between staging \\
+\texttt{diamp} & Flat parachute diameter \\
+\texttt{tb} & Burn time\\
+\texttt{dmdt} & Mass flow rate \\
+\texttt{A} & Characteristic area \\
+\texttt{Ap} & Characteristic area of parachute \\
+\texttt{Lcm} & Mass center distance from base
+\end{longtable}
+%\addcontentsline{toc}{subsubsection}{Initial Conditions}
+\subsubsection*{Initial Conditions}
+\begin{longtable}[l]{l l}
+\texttt{delr} & Shortest distance separating launch rail axis from vehicle axis \\
+\texttt{delphi} & Vertical offset angle \\
+\texttt{deltheta} & Horizontal offset angle \\
+\texttt{veps} & Initial velocity \\
+\texttt{t0} & Initial time \\
+\texttt{tf} & Final time \\
+\texttt{xx0} & Initial state
+\end{longtable}
+%\addcontentsline{toc}{subsection}{Outputs}
+\subsection*{-- Outputs --}
+%\addcontentsline{toc}{subsubsection}{Vehicle}
+\subsubsection*{Flight Characteristics and Performance}
+\begin{longtable}[l]{l l}
+\texttt{t} & Time \\
+\texttt{xx} & State \\
+\texttt{te} & Event times \\
+\texttt{xxe} & Event states \\
+\texttt{x} & Displacement in the $x$ direction \\
+\texttt{y} & Displacement in the $y$ direction \\
+\texttt{z} & Displacement in the $z$ direction \\
+\texttt{vx} & Velocity in the $x$ direction \\
+\texttt{vy} & Velocity in the $y$ direction \\
+\texttt{vz} & Velocity in the $z$ direction \\
+\texttt{ax} & Acceleration in the $x$ direction \\
+\texttt{ay} & Acceleration in the $y$ direction \\
+\texttt{az} & Acceleration in the $z$ direction \\
+\texttt{r} & Radial displacement from the origin \\
+\texttt{v} & Speed relative to the observer origin \\
+\texttt{a} & Acceleration relative to the observer origin \\
+\texttt{FT} & Force of thrust \\
+\texttt{FD} & Force of drag \\
+\texttt{FG} & Force of gravity \\
+\texttt{FXx} & Force of stochastic process in the $x$ direction \\
+\texttt{FXy} & Force of stochastic process in the $y$ direction \\
+\texttt{FXz} & Force of stochastic process in the $z$ direction \\
+\texttt{vxv} & Directionality function in the $x$ direction \\
+\texttt{vyv} & Directionality function in the $y$ direction \\
+\texttt{vzv} & Directionality function in the $z$ direction \\
+\texttt{theta} & Horizontal displacement directionality angle \\
+\texttt{phi} & Vertical displacement directionality angle \\
+\texttt{thetap} & Horizontal velocity directionality angle \\
+\texttt{phip} & Vertical velocity directionality angle \\
+\texttt{psi} & Angle of alignment between the displacement and velocity vectors \\
+\texttt{El} & Angle of elevation \\
+\texttt{thetad} & \texttt{theta} in degrees \\
+\texttt{phid}  & \texttt{phi} in degrees\\
+\texttt{thetapd} & \texttt{thetap} in degrees \\
+\texttt{phipd} & \texttt{phip} in degrees \\
+\texttt{psid} & \texttt{psi} in degrees \\
+\texttt{Eld} & \texttt{El} in degrees \\
+\texttt{m} & Mass \\
+\texttt{Cd} & Drag coefficient \\
+\texttt{q} & Dynamic pressure \\
+\texttt{Ma} & Mach number \\
+\texttt{Re} & Reynolds number
+\end{longtable}
+%\addcontentsline{toc}{subsubsection}{Earth and the Atmosphere}
+\subsubsection*{Earth and the Atmosphere}
+\begin{longtable}[l]{l l}
+\texttt{g} & Gravitational acceleration \\
+\texttt{T} & Air temperature (corrected) \\
+\texttt{p} & Air pressure \\
+\texttt{rho} & Air density (corrected) \\
+\texttt{c} & Local speed of sound \\
+\texttt{mu} & Kinematic viscosity of air \\
+\texttt{nu} & Dynamic viscosity of air 
+\end{longtable}
+
+\addcontentsline{toc}{section}{Theory}
+\section*{Theory}
+%\addcontentsline{toc}{subsection}{Coordinate Frames}
+\subsection*{-- Coordinate Frames --}
+%\addcontentsline{toc}{subsubsection}{Generic}
+\subsubsection*{Generic}
+\begin{longtable}[l]{l l}
+$\mathcal{O}$ & Coordinate system origin \\
+$\xi$ & Cartesian coordinate direction \\
+$\eta$ & Cartesian coordinate direction \\
+$\zeta$ & Cartesian coordinate direction \\
+$w$ & Spherical coordinate magnitude \\
+$\vartheta$ & Spherical coordinate angle \\
+$\varphi$ & Spherical coordinate angle
+\end{longtable}
+%\addcontentsline{toc}{subsubsection}{Observer}
+\subsubsection*{Observer}
+\begin{longtable}[l]{l l}
+$\mathit{O}$ & Observer origin located at the launch tower's base \\
+$x$ & Coordinate direction emanating parallel to the ground towards the rocket's mass center\\
+$y$ & Coordinate direction completing the right-hand rule \\
+$z$ & Coordinate direction emanating completely upwards \\
+$r$ & Radial displacement from the origin \\
+$\theta$ & Horizontal displacement directionality angle \\
+$\phi$ & Vertical displacement directionality angle
+\end{longtable}
+%\addcontentsline{toc}{subsubsection}{Body}
+\subsubsection*{Body}
+\begin{longtable}[l]{l l}
+$\mathit{O'}$ & Body origin located at the rocket's mass center  \\
+$x'$ & Coordinate direction aligned with $x$ \\
+$y'$ & Coordinate direction aligned with $y$ \\
+$z'$ & Coordinate direction aligned with $z$ \\
+$v$ & Speed relative to the observer origin \\
+$\theta'$ & Horizontal velocity directionality angle \\
+$\phi'$ & Vertical velocity directionality angle
+\end{longtable}
+%\addcontentsline{toc}{subsection}{Earth and the Atmosphere}
+\subsection*{-- Earth and the Atmosphere --}
+\begin{longtable}[l]{l l}
+$\varphi$ & Geodetic latitude \\
+$R_{eq}$ & Equatorial radius \\
+$R_{po}$ & Polar radius \\
+$R$ & Radius to sea level at latitude $\varphi$ \\
+$h$ & Local elevation above sea level \\
+$Z_g$ & Geopotential altitude \\
+$\Phi$ & Geopotential \\
+$g_\varphi$ & Nominal gravitational acceleration \\
+$g$ & Gravitational acceleration \\
+$T$ & Air temperature \\
+$p$ & Air pressure \\
+$\rho$ & Air density \\
+$T_0$ & Ground-level air temperature \\
+$\Delta T$ & Real and standard air temperature difference \\
+$\gamma$ & Heat capacity ratio of air \\
+$R$ & Gas constant of air  (differentiated from Earth radius by context) \\
+$c$ & Local speed of sound \\
+$\mu$ & Dynamic viscosity of air \\
+$\nu$ & Kinematic viscosity of air
+\end{longtable}
+%\addcontentsline{toc}{subsection}{Initial Conditions}
+\subsection*{-- Initial Conditions --}
+\begin{longtable}[l]{l l}
+$\ell_{cm}$ & Mass center distance from base \\
+$\delta_r$ & Shortest distance separating launch rail axis from vehicle axis \\
+$\delta_\phi$ & Launch angle \\
+$\delta_\theta$ & Offset angle of the launch rail from the $x$ axis
+\end{longtable}
+%\addcontentsline{toc}{subsection}{Launch Vehicle}
+\subsection*{-- Launch Vehicle --}
+\begin{longtable}[l]{l l}
+$m$ & Mass \\
+$\dot{m}$ & Mass flow rate \\
+$m_0$ & Initial mass \\
+$L$ & Characteristic length \\
+$A$ & Characteristic area \\
+$C_d$ & Drag coefficient \\
+$u$ & Relative exhaust velocity \\
+\end{longtable}
+%\addcontentsline{toc}{subsection}{Flight Characteristics}
+\subsection*{-- Flight Characteristics --}
+\begin{longtable}[l]{l l}
+$t$ & Time \\
+$\mathbf{x}$ & State containing the position ($\vec{r}$) and velocity ($\vec{v}$) \\
+$F_t$ & Force of thrust \\
+$F_d$ & Force of drag \\
+$F_g$ & Force of gravity \\
+$F_\chi$ & Force of stochastic processes \\
+$\psi$ & Angle of alignment between the displacement and velocity vectors \\
+$\mathrm{El}$ & Angle of elevation \\
+$\mathrm{Ma}$ & Mach number \\
+$\mathrm{Re}$ & Reynolds number \\
+$q$ & Dynamic pressure \\
+$\Delta v$ & Velocity change
+\end{longtable}
+%\addcontentsline{toc}{subsection}{Descent Systems}
+\subsection*{-- Descent Systems --}
+\begin{longtable}[l]{l l}
+$r_d$ & Flat parachute radius \\
+$A_d$ & Flat parachute area \\
+$r_p$ & Inflated parachute radius \\
+$A_p$ & Inflated parachute characteristic area \\
+$C_{d,p}$ & Parachute drag coefficient \\
+$\tau_p$ & Half-time to deploy parachute \\
+$\tau_p^*$ & Time at which parachute deploys \\
+$z_m^*$ & Main parachute deployment altitude
+\end{longtable}
+
+\chapter{User Guide}
+\thispagestyle{fancy}
+\pagenumbering{arabic}
+\newpage
+\section{Introduction and General Overview}
+This Matlab program ``\texttt{rtraj}'', was written for the Orbital Launch Vehicle Team by a member of the Trajectory and Analysis subteam. It aims to provide a means of comparing trajectory solutions to those obtained from commercially-available software and enable the ability to calculate additional flight parameters that are often otherwise unobtainable from commercial solutions.
+
+The model considers three driving forces -- gravitation, thrust, and drag -- and a small-scale stochastic force representing random thrust and atmospheric effects on the vehicle while ascending at a rate in excess of the speed the sound. The magnitude of this stochastic force depends on a user-input ratio of the gravitational force experienced at local altitude, including zero, and is further scaled by the density of air at altitude relative to the local launch site elevation relative to sea level.
+
+The equations of motion are solved numerically with variable step size and order via Adams-Bashforth-Moulton methods. The solution is split into seven regions, referred to as sequences, corresponding to critical regimes of flight wherein flight parameters and characteristics are smooth. Particularly, flight parameters spanning across sequences are most generally only piecewise continuous and possibly piecewise smooth with the exception of nonzero stochastic forcing, which is discontinuous everywhere outside of a set of zero measure.
+
+The previously mentioned sequences are specified in the following order.
+\begin{longtable}[l]{l l}
+1 & The first stage is firing and the rocket is on the launch rail \\
+2 & The first stage is firing and the rocket is clear of the launch rail, i.e. in free-flight \\
+3 & The rocket is coasting with the first stage depleted but still attached \\
+4 & The second stage is firing with the first stage now detached \\
+5 & The second stage is depleted and the rocket is coasting to apogee \\
+6 & The rocket is descending from apogee with its drogue parachute until main deployment \\
+7 & The rocket is descending with its main parachute until touchdown \\
+\end{longtable}
+The identifier ``0'' is specially reserved for the initial conditions, which are represented only by a singular point in time, thus a flight regime of zero measure and therefore not considered a sequence.
+
+Once the solution is fully obtained, the flight characteristics and parameters are cloned using the final, converged state variables. Because of its nature, the stochastic force can only be estimated at best by algebraic means after a finite difference computation to estimate acceleration. These estimates can, therefore, be quite rough, but nonetheless provide a means of obtaining the general magnitudes of what the stochastic forcing could have been. If the stochastic force is known to be zero otherwise, the acceleration may be directly obtained through recalculation of the experienced forces.
+
+\section{User Inputs}
+\subsection{Switches}
+The beginning of \texttt{rtraj} is dedicated to variable inputs. The first block acts as a collection of switches that indicate how the program should behave when performing the numerical integration and displaying its progress and results.
+%In other words, the switches act as controllers for various options/inputs that feed into the solvers and options/outputs coming (in)directly from the solver.
+These options and switches are listed below, where the pair $(i,j)$ are integers satisfying $1 \leq i \leq j \leq 7$, and the values $x, i,$ and $j$ per option are independent from one another.
+
+\begin{longtable}[l]{l l l l}
+\texttt{odestats} & `on'/`off' & Provide a short summary of statistics from each ODE solver \\
+\texttt{oderefine} & $x \in \mathbb{Z}^+$ & Specify the amount of points evaluated between time steps \\
+\texttt{odereltol} & $x \in (0, 1)$ & Specify the relative accuracy of numerically calculated solution \\
+\texttt{odeabstol} & $x \in (0, 1)$ & Specify the absolute accuracy of numerically calculated solution \\
+\texttt{odemaxdt} & $x \in \mathbb{R}^+$ & Specify the maximum allowable time step by solver \\
+\texttt{tableseqs} & $i\!:\!j$ & Specify range of sequences to display in \texttt{DispTable} ($\downarrow$) \\
+\texttt{plotseqs} & $i\!:\!j$ & Specify range of sequences to display in \texttt{Plots} ($\downarrow$)\\
+\texttt{angleu} & `rad'/`deg' & Specify units of angles to display in \texttt{Plots} ($\downarrow$)\\
+\texttt{SampleTable} & true/false & Show a short table of the solution and parameters \\
+\texttt{FullTable} & true/false & Show entire table of solution and parameters \\
+\texttt{DispTable} & true/false & Show table of solution and parameters via \texttt{tableseqs} ($\uparrow$)\\
+\texttt{Plots} & true/false & Show plots of the solution and parameters via \texttt{plotseqs} ($\uparrow$)\\
+\texttt{RealTime} & true/false & Show the runtime \\
+\texttt{ODEsTime} & true/false & Show the integration time at each time step \\
+\texttt{Stochastics} & true/false & Apply stochastic forcing \\
+\texttt{StochasticN} & true/false & Permit the maximum value of \texttt{n} ($\downarrow$) to be random
+\end{longtable}
+
+\subsection{Vehicle and Launch Site Parameters}
+The random variable in the stochastic force represents a percentage of the current vehicle weight by which the force can be scaled at each step. The value \texttt{n} (corresponding with \texttt{Stochastics}) determines a hard static bound on values that this random variable can attain at each time step. Furthermore, the value \texttt{stochasticNMax} (corresponding with \texttt{StochasticN}) provides a hard static bound as to what the hard bound on the random variable can be at each step. This feature is only used if and only if \texttt{Stochastics} is already true. Otherwise, the variable \texttt{n} is set to zero, eliminating any consideration of the stochastic force.
+%These two stochastic options are summarized below.
+\begin{longtable}[l]{l l l l}
+\texttt{n} & $|x| < 1$ & Maximum value of random variable per time step \\
+\texttt{nMax} & $|x| < 1$ & Maximum value of randomly determined \texttt{n} per time step
+\end{longtable}
+
+The parameters determining characteristics about the launch site are then listed. Particular values that specify the site characteristics are its geodetic latitude and elevation, which determine the local atmospheric conditions and radius of Earth for the gravitational force.
+\begin{longtable}[l]{l l l l l}
+\texttt{lat} & $|x| \leq 90$ & $[\si{\deg}]$ & Geodetic latitude of launch site \\
+\texttt{elev} & $-86 < x < 6200$ & $[\si{\m}]$ & Elevation above sea level of launch site \\
+\texttt{T0} & $x > -459.67$ & $[\,\!^\circ \mathrm{F}]$ & Local temperature at launch site \\
+\texttt{T00} & \texttt{atmos(elev, lat, 0)} & $[\si{\K}]$ & Temperature via atmosphere model \texttt{atmos} \\
+\texttt{delT} & \texttt{convtemp(T0, `F', `K') - T00} & $[\si{\K}]$ & Temperature offset from \texttt{atmos} model \\
+\texttt{rho0} & \texttt{atmos(elev, lat, delT)} & $[\si{\kg/\m\cubed}]$ & Local surface air density via \texttt{atmos} \\
+\texttt{Ltower} & $x > 0$ & $[\si{\m}]$ & Overall length of launch rail
+\end{longtable}
+It is noted that the values \texttt{T00}, \texttt{delT}, and \texttt{rho0} follow from function definitions dependent upon previously input data and are not explicitly required to be manually assigned a numerical value. However, because \texttt{T0} is only used to define \texttt{delT}, the standard atmosphere conditions may be used if \texttt{delT} is set to zero.
+%The value \texttt{delT} represents the generally nonzero difference between the local surface temperature and standard temperature predicted by the atmosphere model implemented within \texttt{atmos} at an elevation above sea level. Though defined in this section, \texttt{delT} is purposefully excluded from the input list as it relies upon \texttt{T0} and is not passed .
+%Because of generally nonzero offsets of temperature from the standard atmosphere model implemented in \texttt{atmos}, the value \texttt{T0} is used in finding the according difference \texttt{delT} to find the corresponding shifted air density.
+
+The parameters of the vehicle itself are defined next. These parameters are defined for each of the two stages, where the first entry corresponds to the first stage and the second entry for the second stage. The notation $[\mathrm{US}] \rightarrow [\mathrm{SI}]$ indicates that the parameters are input in (Standard) units $[\mathrm{US}]$ and immediately converted into (metric) units $[\mathrm{SI}]$ during runtime. Additionally, the notation $[\mathrm{SI}]$ $[\mathrm{SI}]$ indicates that the input is related to a matrix with row size greater than unity for which the units apply to its second dimension, i.e. to the individual columns ($n \times 2$ with $n > 1$ in this case).
+\begin{longtable}[l]{l l l l l}
+\texttt{L} & $\begin{bmatrix}6.35 & 3.71\end{bmatrix}$ & $[\si{\m}]$ & Overall length of the vehicle \\
+\texttt{fn} & $\begin{bmatrix}4 & 4\end{bmatrix}$ & $[\ ]$ & Number of fins considered for drag \\
+\texttt{fw} & $\begin{bmatrix}9.25 & 6.75\end{bmatrix}$ & $[\mathrm{in}] \rightarrow [\si{\m}]$ & Fin width \\
+\texttt{fz} & $\begin{bmatrix}0.435 & 0.44\end{bmatrix}$ & $[\mathrm{in}] \rightarrow [\si{\m}]$ & Fin thickness \\
+\texttt{od} & $\begin{bmatrix}8.5 & 6\end{bmatrix}$ & $[\mathrm{in}] \rightarrow [\si{\m}]$ & Largest outer diameter of casing \\
+\texttt{mf} & $\begin{bmatrix}71.22 & 20.374\end{bmatrix}$ & $[\si{\kg}]$ & Mass of fuel at the beginning of each stage \\
+\texttt{m0} & $\begin{bmatrix}194.43 & 65.33\end{bmatrix}$ & $[\si{\kg}]$ & Initial mass at the beginning of each stage \\
+\texttt{tbFT} & $\mathbf{F} \in \mathbb{R}^{n_{1,2} \times 2 \times 2}$ & $[\si{\s}]$ $[\mathrm{lbf}] \rightarrow [\si{\N}]$ & Thrust as a function of burn time from csv files \\
+\texttt{MaCd} & $\mathbf{F} \in \mathbb{R}^{n_{1,2} \times 2 \times 2}$ & $[\ ]$ $[\ ]$ & Drag coefficient as a function of Mach number from csv files \\
+\texttt{delay} & $x \geq 0$ & $[\si{\s}]$ & Time between first stage burnout and second stage firing \\
+\texttt{diamp} & $\begin{bmatrix}36 & 108\end{bmatrix}$ & $[\mathrm{in}] \rightarrow [\si{\m}]$ & Flattened parachute diameters \\
+\texttt{zm} & $x \geq 0$ & $[\si{\m}]$ & Altitude at which the second stage's parachute deploys
+\end{longtable}
+It is important that the comma separated values (csv) files are supplied to consider variable thrust (obtained from \textsl{BurnSim}) and drag coefficients (obtained from \textsl{RasAero}). For thrust, any trailing times for which thrust is constantly zero should be removed, and the drag coefficient should have a sufficient Mach number domain so that drag coefficients are not extrapolated. Should thrust or drag coefficient be desired to be held constant, the respective files need only two rows of information. The values \texttt{tbFT} and \texttt{MaCd} are combined to form a $1 \times 2$ cell of $1 \times 2$ cells that each contain two matrices, each of which have 2 columns but different numbers of rows, which is passed into the solver in place of passing both \texttt{tbFT} and \texttt{MaCd}.
+\begin{longtable}[l]{l l l l}
+\texttt{csvs} & $\begin{Bmatrix}\begin{Bmatrix}\texttt{tbFT\{1\}} & \texttt{MaCd\{1\}}\end{Bmatrix} & \begin{Bmatrix}\texttt{tbFT\{2\}} & \texttt{MaCd\{2\}}\end{Bmatrix}\end{Bmatrix}$ & $[\si{\s}]$ $[\si{\N}]$ $[\ ]$ $[\ ]$ $\times 2$ & Combined csv files
+\end{longtable}
+
+Several additional parameters may be computed using these above-defined values. The notation of Matlab functions and element-wise operations are used below.
+\begin{longtable}[l]{l l l l l}
+\texttt{tb} & $\texttt{tbFT\{:\}(end,1)}$ & $[\si{\s}]$ & Burn time (note: pseudo-notation) \\
+\texttt{dmdt} & $\texttt{-mf./tb}$ & $[\si{\kg / \s}]$ & Mass flow rate \\
+\texttt{A} & $\texttt{pi/4*od.\textasciicircum 2\,+\,fw.*fz.*fn}$ & $[\si{\m\squared}]$ & Characteristic rocket cross-sectional areas \\
+\texttt{Ap} & $\texttt{pi/8*diamp.\textasciicircum 2}$ & $[\si{\m\squared}]$ & Characteristic drogue and main parachute areas
+\end{longtable}
+
+The final section of parameters are those related to the initial conditions of launch. As such, the initial conditions are evaluated with a fully loaded, unfired launch vehicle attached to the launch rail at time $t = 0$.
+\begin{longtable}[l]{l l l l l}
+\texttt{Lcm} & $2.2$ & $[\si{\m}]$ & Distance from the first stage nozzle exit to the mass center \\
+\texttt{delr} & $x \geq 0$ & $[\mathrm{in}] \rightarrow [\si{\m}]$ & Perp. distance from the launch rail center to the vehicle center \\
+\texttt{delphi} & $x \in [0, 90]$ & $[\si{\deg}]$ & Offset angle of the launch rail from the true $z$-vertical \\
+\texttt{deltheta} & $x \in [0,360]$ & $[\si{\deg}]$ & Offset angle of the launch rail from the $x$-horizontal \\
+\texttt{veps} & \texttt{eps} & $[\si{\m/\s}]$ & Very small initial velocity
+\end{longtable}
+
+All of these parameters are categorized by tables (\texttt{iWant} (3), \texttt{stochasticParams} (2), \texttt{launchSiteParams} (4), \texttt{rocketParams} (15), and \texttt{initParams} (5) respectively in order of previous appearance) and combined into the structure \texttt{args} to be passed into the solver. This action is done as opposed to passing individual values to the solver due to the structure having the distinct advantages of organization and flexibility.
+
+%The time interval over which the equations are to be solved is specified by adjusting \texttt{tf}. Note that \texttt{t0} must be fixed to be zero to be compatible with the definitions of parameters above. Otherwise, the correct conditions must be specified manually at \texttt{t0} to begin the integration at nonzero initial time. The vector \texttt{xx0} contains information about the initial conditions of the rocket required by the initial geometry of launch, which must also be numerically adjusted if \texttt{t0} is nonzero.
+The last values \texttt{t0}, \texttt{tf}, and \texttt{xx0} are not passed into the solvers per se, but rather used as arguments. The initial time \texttt{t0} specifies the initial integration time and is fixed to zero. Accordingly, the final time \texttt{tf} is the maximum allowable integration time per sequence. To guarantee sufficient time then, an arbitrarily large value can be chosen since the solvers are split into sequences and stop automatically upon sequence changes. Finally, \texttt{xx0} is vector of initial conditions corresponding to \texttt{t0}. It is noteworthy to mention that \texttt{t0} may be nonzero, but every value must be updated accordingly to compensate for beginning the solution in mid-flight.
+
+The values left completely to user interpretation are truly open and have no correlation with the physical build of the rocket, but particular values are given below.
+%\begin{table}[H]
+%\caption{Particular values for rocket parameters and potential launch sites} \label{tab:particularValues}
+{\tabulinesep=1.0mm
+\begin{longtable}[l]{l l l}
+ & Black Rock Desert (Nevada) & Spaceport America (New Mexico) \\
+\texttt{lat} & $40.9107^\circ$N & $32.9903^\circ$N \\
+\texttt{elev} & $1191 \ [\si{\m}]$ & $1401 \ [\si{\m}]$ \\
+\texttt{Ltower} & $360 \ [\mathrm{in}]$ & $360 \ [\mathrm{in}]$ \\
+\texttt{delay} & $7 \ [\si{\s}]$ & $7 \ [\si{\s}]$ \\
+\texttt{zm} & $609 \ [\si{\m}]$ & $609 \ [\si{\m}]$ \\
+\texttt{delr} & $7.25 \ [\mathrm{in}]$ & $7.25 \ [\mathrm{in}]$ \\
+\texttt{delphi} & $5^\circ$ & $5^\circ$ \\
+\texttt{deltheta} & $10^\circ$ & $10^\circ$ \\
+\end{longtable}}
+%\end{table}
+In reality, the values \texttt{delr}, \texttt{delphi}, and \texttt{deltheta} are measurable values to be found at the launch site, and \texttt{delphi} will be close to zero, but is set to consider a worst-case scenario.
+
+
+\section{Assumptions}
+The implicit assumptions made within \texttt{rtraj} are explicitly listed here.
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.5}
+\begin{longtable}[l]{p{0.95\linewidth}}
+The atmosphere model is taken to be the 1976 U.S. Standard Atmosphere defined by the World Meteorological Organization that varies in latitude from Earth's surface up to 1000 km. \\
+The gravitational acceleration varies along with the radius of Earth as a function of latitude. \\
+The amount of thrust is sufficient to lift the specified mass \texttt{m0} so that the rocket is able to sustain vertical motion overcoming the influence of gravity. \\
+The thrust force acts in the direction of the velocity vector, antiparallel to the drag force. \\
+The mass flow rate is a constant while staging and coasting \\
+The stochastic force is only considered at supersonic speeds. \\
+The rocket is inherently stable. \\
+The second stage fires immediately following separation. \\
+The rocket's horizontal displacement is not sufficiently large enough to account for the curvature of Earth's surface nor changes in latitude and local elevation. \\
+The rocket deploys the drogue parachute at apogee in which drag increases as $\erf t$ over a span of 4 seconds and releases the main chute at the specified altitude \texttt{zm}, increasing drag similarly over a span of 7 seconds. \\
+The parachutes take on a hemispherical form when fully deployed and exhibit a constant drag coefficient. \\
+The main parachute deployment altitude \texttt{zm}, while positive, is less than the attained altitude at apogee.
+\end{longtable}
+\end{table}
+
+\section{Warnings}
+A smooth run of \texttt{rtraj} is not guaranteed for all possible input values, and obtaining a solution does not necessarily mean that the solution is converged. The convergence of a solution is determined by \texttt{odereltol} and \texttt{odeabstol}. These values increase solution accuracy as each decrease at the cost of speed. Additionally, solution resolution is determined by \texttt{oderefine} and \texttt{odemaxdt} in which resolution increases as \texttt{oderefine} increases and \texttt{odemaxdt} decreases at the cost of speed. If considering stochastic forcing, using any value greater than one for \texttt{oderefine} creates artificial, possibly incorrect, trends in acceleration.
+
+There is no case handling for flights in which the set parameters result in touchdown before the final sequence, or more generally, any future sequence that happens during the current one. The program may therefore either break in the solver or finish executing. Thus if execution finished, special attention must be given to the altitude, for any negative altitude indicates that the simulation failed.
+ 
+
+
+%The remainder of the script pertains to numerical integration of the state equation, where \texttt{xx} denotes the state, and flight characteristics like atmospheric properties, dynamic pressure, body forces, etc.
+
+%As the script finishes, it outputs several components of information depending on the switches chosen at the beginning. The time is shown at each step is shown if \texttt{ODEsTime} is `true' and data regarding the integration process is displayed if \texttt{odestats} is `on'. The sample table \texttt{Ysamp} displays information from the last five time steps to view the column headers with a short amount of output beneath them. This table gives the ability to quickly glance at what column pertains to what information and provides a small check that values are properly aligned. The summary table \texttt{Ysum} provides a two-row table containing the minimum and maximum values of every calculated variable, and the event table \texttt{Yeve} displays the states at every event specified in \texttt{odevents}. These events occur at the first and second burnouts, apogee, and landing. Finally, the table containing information of every calculated variable at every time step is \texttt{Y}. It is noted that it is better to display sections of \texttt{Y} if there were many function evaluations such that \texttt{Y} is tall to avoid overflowing the command window. The total amount of runtime is displayed at the end if \texttt{RealTime} is `true'.
+
+\chapter{Derivation}
+\newpage
+\section{Generalized Coordinates and Mappings}
+%Consider a point mass accelerating in an inertial coordinate system. The trajectory of this point is established by writing the equations of motion utilizing the directivity functions of spherical coordinates with the magnitudes of the involved forces. The relation between spherical and Cartesian coordinates is shown in Fig. (\ref{fig:sph2cart}).
+%Consider a point in a non-rotating coordinate system at a specified time $t$. The trajectory history of this point as $t$ varies can be written in both spherical coordinates and Cartesian coordinates and is established by tracking the magnitude of the vector $\vec{w}$, $w \in [0, \infty)$,  and its associated directions $\vartheta \in [0, 2\pi),\, \varphi \in [0, \pi]$ for all times $t$ in the associated time interval of tracking.
+Consider a point in a non-rotating orthogonal coordinate system at a specified time $t$. The trajectory history of this point as $t$ varies can be written in both spherical and Cartesian coordinates. In spherical coordinates, this history can be established by tracking the vector $\vec{w} \in \mathbb{R}^3$ by its magnitude $0 \leq w < \infty$ and associated directions $0 \leq \vartheta < 2\pi$ and $0 \leq \varphi \leq \pi$ for all times $t$ in the associated time interval of tracking.
+\begin{figure}[H]
+\begin{center}
+\tdplotsetmaincoords{60}{110}
+\pgfmathsetmacro{\rvec}{.8}
+\pgfmathsetmacro{\thetavec}{35} %30
+\pgfmathsetmacro{\phivec}{65} % 60
+\begin{tikzpicture}[scale=5,tdplot_main_coords]
+    \coordinate (O) at (0,0,0) node[anchor=south east]{$\mathcal{O}$};
+    \draw[thick,->] (0,0,0) -- (1,0,0) node[anchor=north east]{$\xi$};
+    \draw[thick,->] (0,0,0) -- (0,1,0) node[anchor=north west]{$\eta$};
+	\draw[thick,->] (0,0,0) -- (0,0,1) node[anchor=south]{$\zeta$};
+    \tdplotsetcoord{P}{\rvec}{\thetavec}{\phivec}
+    \draw[-stealth,color=black] (O) -- (P) node[above right] {$w$};
+    \draw[dashed, color=black] (O) -- (Pxy);
+    \draw[dashed, color=black] (P) -- (Pxy);
+    \tdplotdrawarc{(O)}{0.2}{0}{\phivec}{anchor=north}{$\vartheta$}
+    \tdplotsetthetaplanecoords{\phivec}
+    \tdplotdrawarc[tdplot_rotated_coords]{(0,0,0)}{0.5}{0}%
+        {\thetavec}{anchor=south west}{$\varphi$}
+\end{tikzpicture}
+\end{center}
+\caption{Spherical coordinate system containing a point at $(w, \vartheta, \varphi)$ at time $t$}
+\label{fig:sph2cart}
+\end{figure}
+The mapping from spherical to Cartesian coordinates follows from the projection of $\mathbb{R}^3 \to \mathbb{R}^2 \to \mathbb{R}$ onto the coordinate axes $\xi, \eta, \zeta$ as
+\begin{align}
+\xi &= w \sin \varphi \cos \vartheta \label{eq:sph2carx} \\
+\eta &= w \sin \varphi \sin \vartheta \label{eq:sph2cary} \\
+\zeta &= w \cos \varphi. \label{eq:sph2carz} \\
+\intertext{Conversely, the inverse mapping is}
+w^2 &= \xi^2 + \eta^2 + \zeta^2\\
+\tan \vartheta &= \frac{\eta}{\xi}\\
+\cos \varphi &= \frac{\zeta}{w}.
+\end{align}
+In general, the point of interest will have a radius $r$ from an inertial frame $\mathit{O}$ and a velocity $v$ in the non-inertial body frame $\mathit{O}'$. This frame $\mathcal{O} \to \mathit{O}$ takes $\xi \to x, \, \eta \to y,\, \text{and}\  \zeta \to z$, and is related to $\mathit{O}'$ ($\xi \to x', \, \eta \to y', \, \zeta \to z'$) by
+\begin{equation}
+\mathit{O}' = \mathit{O} + \begin{bmatrix}x & y & z\end{bmatrix}^T,
+\end{equation}
+where $\mathit{O}$ is the observer location, which can be taken to be zero, and $\mathit{O'}$ is non-rotating with respect to the $\mathit{O}$ frame.
+Finally, it is noted that all vectors $\vec{w}$ are free such that $\vec{r}$ can be expressed in the $\mathrm{O}'$ frame beside $\vec{v}$ and there exists an angle of separation that determines how aligned $\vec{r}$ is with $\vec{v}$ and vice versa.
+% The full picture of the scenario is shown in Fig. (\ref{fig:OandO'}).
+\begin{figure}[H]
+\begin{center}
+\tdplotsetmaincoords{60}{110}
+%
+\pgfmathsetmacro{\rvec}{1.95}
+\pgfmathsetmacro{\thetavec}{65} % 75
+\pgfmathsetmacro{\phivec}{80} % 110
+%
+\begin{tikzpicture}[scale=5,tdplot_main_coords]
+\coordinate (O) at (0,0,0) node[anchor=south east]{$\mathit{O}$};
+\draw[thick,->] (0,0,0) -- (1,0,0) node[anchor=north east]{$x$};
+\draw[thick,->] (0,0,0) -- (0,1,0) node[anchor=north west]{$y$};
+\draw[thick,->] (0,0,0) -- (0,0,1) node[anchor=south]{$z$};
+\tdplotsetcoord{P}{\rvec}{\thetavec}{\phivec}
+\draw[-stealth,color=black] (O) -- (P) node[anchor=south,pos=0.75]{$r$};
+\draw[dashed, color=black] (O) -- (Pxy);
+\draw[dashed, color=black] (P) -- (Pxy);
+\tdplotdrawarc{(O)}{0.2}{0}{\phivec}{anchor=north}{$\theta$}
+\tdplotsetthetaplanecoords{\phivec}
+\tdplotdrawarc[tdplot_rotated_coords]{(0,0,0)}{0.4}{0}{\thetavec}{anchor=south west}{$\phi$}
+%\draw[dashed,tdplot_rotated_coords] (\rvec,0,0) arc (0:90:\rvec);
+%\draw[dashed] (\rvec,0,0) arc (0:90:\rvec);
+\tdplotsetrotatedcoords{0}{0}{0}
+\tdplotsetrotatedcoordsorigin{(P)}
+\draw[thick,tdplot_rotated_coords,->] (0,0,0) -- (0,0,0) node[anchor=south east]{$\mathit{O}'$};
+\draw[thick,tdplot_rotated_coords,->] (0,0,0) -- (.75,0,0) node[anchor=north]{$x'$};
+\draw[thick,tdplot_rotated_coords,->] (0,0,0) -- (0,.75,0) node[anchor=west]{$y'$};
+\draw[thick,tdplot_rotated_coords,->] (0,0,0) -- (0,0,.75) node[anchor=south]{$z'$};
+\draw[-stealth,color=black,tdplot_rotated_coords] (0,0,0) -- (1,1,1) node[anchor=south,pos=0.75]{$v$};
+\draw[dashed,color=black,tdplot_rotated_coords] (0,0,0) -- (1,1,0);
+\draw[dashed,color=black,tdplot_rotated_coords] (1,1,0) -- (1,1,1);
+\tdplotdrawarc[tdplot_rotated_coords,color=black]{(0,0,0)}{0.3}{0}{45}{anchor=north west,color=black}{$\theta'$}
+\tdplotsetrotatedthetaplanecoords{45}
+\tdplotdrawarc[tdplot_rotated_coords,color=black]{(0,0,0)}{0.3}{0}{55}{anchor=south west,color=black}{$\phi'$}
+\end{tikzpicture}
+\end{center}
+\caption{Relation between $\mathit{O}$ and $\mathit{O}'$ coordinate systems}
+\label{fig:OandO'}
+\end{figure}
+\section{Application To Rocket Motion}
+The main, deterministic forces acting on the point, which will be considered as the rocket's center of mass, in the $\mathit{O'}$ frame are those of thrust $\vec{F}_t$, drag $\vec{F}_d$, and gravity $\vec{F}_g$. Because the drag force always acts in opposition to the velocity vector $\vec{v}$, which by assumption shares the same direction as the thrust force, the forces of thrust and drag act in opposing directions at all times except when either or both forces go to zero, in which case directionality is not defined. A perturbitive stochastic force $\vec{F}_{\chi}$ is also included to account for the Brownian motion of fluid particles in close proximity to the vehicle which can be defined to model random thrusting or atmosphere effects.
+\begin{figure}[H]
+\begin{center}
+% Define view of coordinate system
+\tdplotsetmaincoords{60}{110} %{60}{110}
+% Define v vector in spherical coordinates (theta measured from z & phi from x!!!)
+\pgfmathsetmacro{\vvec}{1}
+\pgfmathsetmacro{\thetapvec}{45}
+\pgfmathsetmacro{\phipvec}{68}
+% Define v vector in spherical coordinates (theta measured from z & phi from x!!!)
+\pgfmathsetmacro{\rvec}{1}
+\pgfmathsetmacro{\thetarvec}{45}
+\pgfmathsetmacro{\phirvec}{220}
+% Define forces (fixed, don't change)
+\pgfmathsetmacro{\Fmag}{0.75}
+\pgfmathsetmacro{\FDthetavec}{\thetapvec + 90} % Reverse direction for drag
+\pgfmathsetmacro{\FDphivec}{\phipvec + 180} % Reverse direction for drag
+\pgfmathsetmacro{\FSthetavec}{80} % Stochastic forcing direction
+\pgfmathsetmacro{\FSphivec}{-50} % Stochastic forcing direction
+% x,y,z coordinates of v (fixed)
+\pgfmathsetmacro{\vx}{{\vvec*sin(\thetapvec)*cos(\phipvec)}}
+\pgfmathsetmacro{\vy}{{\vvec*sin(\thetapvec)*sin(\phipvec)}}
+\pgfmathsetmacro{\vz}{{\vvec*cos(\thetapvec)}}
+% x,y,z coordinates of r
+\pgfmathsetmacro{\rx}{{\rvec*sin(\thetarvec)*cos(\phirvec)}}
+\pgfmathsetmacro{\ry}{{\rvec*sin(\thetarvec)*sin(\phirvec)}}
+\pgfmathsetmacro{\rz}{{\rvec*cos(\thetarvec)}}
+\begin{tikzpicture}[scale=5,tdplot_main_coords]
+\coordinate (O) at (0,0,0) node[anchor=south east]{$\mathit{O}'$};
+\draw[thick,->] (0,0,0) -- (1,0,0) node[anchor=north east]{$x'$};
+\draw[thick,->] (0,0,0) -- (0,1,0) node[anchor=north west]{$y'$};
+\draw[thick,->] (0,0,0) -- (0,0,1) node[anchor=south]{$z'$};
+\tdplotsetcoord{P}{\vvec}{\thetapvec}{\phipvec}
+\draw[-stealth,color=black] (O) -- (P) node[anchor=south west]{};
+\draw[dashed, color=black] (O) -- (Pxy);
+\draw[dashed, color=black] (P) -- (Pxy);
+\tdplotdrawarc{(O)}{0.4}{0}{\phipvec}{anchor=north west}{$\theta'$}
+\tdplotsetthetaplanecoords{\phipvec}
+\tdplotdrawarc[tdplot_rotated_coords]{(0,0,0)}{0.4}{0}{\thetapvec}{anchor=south west}{$\phi'$}
+% Define forces
+\tdplotsetcoord{FT}{\Fmag}{\thetapvec}{\phipvec}
+\tdplotsetcoord{FD}{\Fmag}{\FDthetavec}{\FDphivec}
+\tdplotsetcoord{FG}{\Fmag}{180}{0}
+\tdplotsetcoord{FS}{\Fmag}{\FSthetavec}{\FSphivec}
+% Draw forces
+\draw[-stealth,color=black,thick] (O) -- (FT) node[anchor=south east]{$F_t$};
+\draw[-stealth,color=black,thick] (O) -- (FD) node[anchor=north]{$F_d$};
+\draw[-stealth,color=black,thick] (O) -- (FG) node[anchor=north]{$F_g$};
+\draw[-stealth,color=black,thick] (O) -- (FS) node[anchor=south east]{$F_\chi$};
+
+% Draw psi
+\tdplotdefinepoints(0,0,0)(\vx,\vy,\vz)(\rx,\ry,\rz)
+\draw[->, blue, opacity=0] (0,0,0)%(\tdplotvertexx,\tdplotvertexy,\tdplotvertexz)
+-- (P); %(\tdplotax,\tdplotay,\tdplotaz)
+\draw[->,black] (\tdplotvertexx,\tdplotvertexy,\tdplotvertexz)
+-- (\tdplotbx,\tdplotby,\tdplotbz);
+\node[anchor=east] at (\tdplotvertexx,\tdplotvertexy,\tdplotvertexz){}; % Vertex
+\node[anchor=south east] at (P){$v$};%(\tdplotax,\tdplotay,\tdplotaz){}; % v vector (clear from opacity = 0)
+\node[anchor=south west] at (\tdplotbx,\tdplotby,\tdplotbz){$r$};
+\tdplotdrawpolytopearc[thick]{0.2}{anchor=west}{$\psi$}
+\end{tikzpicture}
+\end{center}
+\caption{Free-body diagram of the rocket's center of mass while in flight}
+\label{fig:FBD}
+\end{figure}
+With only information regarding the magnitude of the involved forces, the governing equations of motion to be solved for $\vec{r}$ may be expressed as
+\begin{align}
+m \ddot{x} &= \left(F_t - F_d\right) \sin\phi' \cos\theta' + F_{\chi_x} \quad [\si{\N}] \, \label{eq:mxdd} \\
+m \ddot{y} &= \left(F_t - F_d\right) \sin\phi' \sin\theta' \hspace*{0.3ex} + F_{\chi_y} \quad [\si{\N}] \, \label{eq:mydd} \\
+m \ddot{z} &= \left(F_t - F_d\right) \cos\phi' - F_g \hspace*{0.1ex} + F_{\chi_z} \quad [\si{\N}], \label{eq:mzdd} 
+\end{align}
+where every variable is implicitly a function of time $t$ and the symbol $\dot{}$ denotes a time derivative. The angles $\phi'$ and $\theta'$ can be rewritten in terms of $\vec{v}$ from Fig. (\ref{fig:FBD}) as
+\begin{align}
+\sin\phi' &= \frac{\sqrt{\dot{x}^2 + \dot{y}^2}}{v} & \cos\theta' &= \frac{\dot{x}}{\sqrt{\dot{x}^2 + \dot{y}^2}} \label{theta'phi'}\\
+\cos\phi' &= \frac{\dot{z}}{v} & \sin\theta' &= \frac{\dot{y}}{\sqrt{\dot{x}^2 + \dot{y}^2}}.
+\end{align}
+As a corollary, the angles $\phi$ and $\theta$ in the $\mathit{O}$ frame must follow the same form since the orientation of each frame is the same and are written
+\begin{align}
+\sin\phi &= \frac{\sqrt{x^2 + y^2}}{r} & \cos\theta &= \frac{x}{\sqrt{x^2 + y^2}} \\
+\cos\phi &= \frac{z}{r} & \sin\theta &= \frac{y}{\sqrt{x^2 + y^2}}, \label{thetaphi}
+\end{align}
+where the displacement and velocity vectors are formally and respectively defined
+\begin{align}
+\vec{r} &= \begin{bmatrix}x & y & z\end{bmatrix}^T \quad [\si{\m}] \\
+\vec{v} &= \dot{\vec{r}} \quad [\si{\m/\s}].
+\end{align}
+The angle $\psi$ measures the deviation of the velocity vector $\vec{v}$ from the displacement vector $\vec{r}$ and is obtained for all times $t$ through direct use of the inner and cross products as
+\begin{equation}
+\tan\psi = \frac{\norm{\vec{r} \times \vec{v}}}{\vec{r}\,^T \vec{v}}, \label{eq:psirv}
+\end{equation}	
+or in terms of the coordinate angles $\phi, \theta, \phi', \theta'$,
+\begin{equation}
+\tan\psi = \frac{\sqrt{\sin^2 \phi \cos^2\phi' + (\cos^2 \phi + \sin^2(\theta - \theta') \sin^2\phi)\sin^2\phi' - (\cos(\theta - \theta') \sin 2\phi \sin 2\phi') / 2}}{\cos\phi \cos\phi' + \cos(\theta - \theta')\sin\phi \sin\phi'}. \label{eq:psiAngles}
+\end{equation}
+If launching solely for altitude (complete vertical ascent), $\psi$ is identically zero until apogee when $\dot{z} \sim 0$, after which $\vec{r}$ and $\vec{v}$ are antiparallel. Thus, with the assumption of purely vertical motion, i.e. $\phi \equiv 0$, $\psi$ is a step function for all times $t$ behaving like
+\begin{align}
+\psi = \pi H(t - t^*) \quad [\si{\radian}], \label{eq:psi4vertical}
+\end{align}
+where $t^*$ is the time at apogee uniquely satisfying
+\begin{equation}
+%\dot{z}(t^*) \equiv 0 \quad [\si{\m/\s}].
+\dot{z}(t^*) = 0 \quad [\si{\m/\s}].
+\end{equation}
+Conversely, if $\phi \sim 0$ ($\phi' \sim 0$ consequently), an assumption that holds well at least until apogee for near-vertical launches, then (\ref{eq:psiAngles}) is approximated by
+%\begin{align}
+%\tan\psi &\sim \frac{\sqrt{\sin^2 \phi' - \cos(\theta - \theta') \phi \sin 2\phi'}}{\cos \phi' + \cos(\theta - \theta') \phi \sin \phi'} \\
+%&= \frac{\sqrt{(x^2 + y^2) (\dot{x}^2 + \dot{y}^2) - 2 \sqrt{x^2 + y^2} (x \dot{x} + y \dot{y}) \dot{z} \tan^{-1} \zeta}}{(x \dot{x} + y \dot{y}) \tan^{-1}\zeta + \sqrt{x^2 + y^2} \dot{z}} && (\zeta = \sqrt{x^2 + y^2} / z).
+%\end{align}
+\begin{equation}
+\tan\psi \sim \abs{\tan\phi' -  \phi\,\sec^2 \phi' \cos(\theta - \theta')}. \label{eq:psi4nearvertical}
+\end{equation}
+%Indeed, minimizing horizontal displacement minimizes deviation between the displacement and velocity vectors, which is desirable for obtaining the highest possible apogee, as seen for times $t < t^*$ by
+%\begin{equation}
+%\lim_{(x, y, \dot{x}, \dot{y}) \to 0} \tan \psi = 0.
+%\end{equation}
+%Under this linear expansion in $\phi$, the angle $\psi$ is seen to be zero when $\phi'$ vanishes, valid for all times $t < t^*$. Indeed, the intuition of (\ref{eq:psi4vertical}) is realized as $\phi \to 0$ for all times $t$. However, there do exist combinations of $\phi, \phi', \theta, \theta'$ in which vertical flight is not achieved, yet $\psi$ still vanishes at particular instants of time.
+Here, the quantity $\tan\psi$ is seen to be sensitive to $\tan\phi'$ for near vertical launches where (\ref{eq:psiAngles}) is linearly expanded in favor of $\phi$. So a rocket launching with a nonzero angle $\phi'$ should generally expect its position and velocity vectors to be misaligned. However, there are indeed particular combinations of $\phi, \theta, \phi', \theta'$ with $\phi \sim 0$ and $\phi' \neq 0$ that still satisfy $\psi = 0$, a less desirable case to complete vertical ascent.
+
+For completion, (\ref{eq:psiAngles}) is approximated by (\ref{eq:psi4nearvertical}) but without absolute value during descent of a near vertical launch for which $\phi \sim 0$ and $\phi' \sim \pi$.
+
+
+\section{Quantifying the Equations of Motion}
+%Because the nozzle for each stage will be choked while producing thrust, the mass flow rate $\dot{m} \leq 0$ during stage $i$ for $i = 1,2$ can be considered constant so that the mass of the rocket is a linear function of time
+The nozzle for each flight sequence will either have no mass flow or be choked while producing thrust, so the mass flow rate $\dot{m} \leq 0$ during each sequence can be considered constant so that the mass of the rocket is a linear function of time,
+\begin{equation}
+m = \dot{m} t + m_0 \quad [\si{\kg}], \label{eq:m}
+\end{equation}
+where $m_0$ is the rocket's mass at the beginning of the sequence. Additionally, the forces experienced during flight are assumed to take the forms
+\begin{align}
+F_t &= -u\dot{m} \quad [\si{\N}] \label{eq:F_t} \,\\
+F_d &= \frac{1}{2} \rho v^2 C_d A \quad [\si{\N}] \ \label{eq:F_d} \,\\
+F_g &= mg \quad [\si{\N}] \label{eq:F_g} \,\\
+F_{\chi_{n,\Theta}} &= \frac{\rho}{\rho_0} \chi_{n,\Theta}  F_g\quad [\si{\N}], \label{eq:F_X}
+\end{align}
+where
+\begin{longtable}[l]{l l l}
+$u$ & $[\si{\m/\s}]$ & Speed of exhaust relative to the rocket \\
+$\dot{m}$ & $[\si{\kg/\s}]$ & Mass flow rate \\
+$\rho$ & $[\si{\kg/\m\cubed}]$ & Atmospheric density at altitude $z$ \\
+$\rho_0$ & $[\si{\kg/\m\cubed}]$ & Atmospheric density at launch site elevation \\
+$C_d$ & $[\ ]$ & Coefficient of drag \\
+$A$ & $[\si{\m\squared}]$ & Maximum cross-sectional area during a sequence \\
+$g$ & $[\si{\m/\s\squared}]$ & Gravitational acceleration \\
+$\chi_{n,\Theta}$ & $[\ ]$ & Uniformly distributed number on $[-n, n]$ for $|n| < 1$ applied to axis $\Theta = x,y,z$ \\
+$n$ & $[\ ]$ & Scaling factor of the stochastic force as a percentage of the gravitational force.
+\end{longtable}
+
+It is noted that the thrust force $F_t$ may be given as an explicit function of time, the stochastic force $F_{\chi_{n,\Theta}}$ may be revised to take on a different form later, and the value $n$ can be interpreted many ways (including being a uniformly distributed number at each time $t$ itself). Therefore, inserting these variables with the exception of $F_t$ and $F_{\chi}$ into the equations of motion (\ref{eq:mxdd} -- \ref{eq:mzdd}) and expressing them in terms of zeroth, first, and second order derivatives of the coordinate directions $x,y,z$ yields
+\begin{align}
+\ddot{x} &= \frac{1}{\dot{m} t + m_0} \left(F_t - \frac{\rho (\dot{x}^2 + \dot{y}^2 + \dot{z}^2)}{2} C_d A\right) \frac{\dot{x}}{\sqrt{\dot{x}^2 + \dot{y}^2 + \dot{z}^2}} + \frac{F_{\chi_{n,x}}}{\dot{m}t + m_0} \quad [\si{\m/\s\squared}] \label{eq:accelx} \\
+\ddot{y} &= \frac{1}{\dot{m} t + m_0} \left(F_t - \frac{\rho (\dot{x}^2 + \dot{y}^2 + \dot{z}^2)}{2} C_d A\right) \frac{\dot{y}}{\sqrt{\dot{x}^2 + \dot{y}^2 + \dot{z}^2}} + \frac{F_{\chi_{n,y}}}{\dot{m}t + m_0} \quad [\si{\m/\s\squared}] \label{eq:accely} \\
+\ddot{z} &= \frac{1}{\dot{m} t + m_0} \left(F_t - \frac{\rho (\dot{x}^2 + \dot{y}^2 + \dot{z}^2)}{2} C_d A\right) \frac{\dot{z}}{\sqrt{\dot{x}^2 + \dot{y}^2 + \dot{z}^2}} - g + \frac{F_{\chi_{n,z}}}{\dot{m}t + m_0} \quad [\si{\m/\s\squared}].  \label{eq:accelz} 
+\end{align}
+Explicitly, the air density $\rho$ depends on altitude $z$, the coefficient of drag $C_d$ depends on Mach number $\mathrm{Ma}$ for a fixed body geometry, and the characteristic area $A$ depends solely on time $t$ for the same body geometry. These equations, from which the position $\vec{r}$ must be found, in their full forms are classified as nonautonomous, nonlinear, coupled, second-order ordinary differential equations.
+\subsection{Initial Conditions}
+With the equations of motion established, the attention now turns towards studying the initial conditions. It is well-established that a second order ordinary differential equation requires two initial conditions, namely an initial position and initial velocity. A total of six initial conditions are thus sought as a result of carrying a set of three second order ordinary differential equations.
+
+Consider the rocket statically attached to the launch rail before launch. Suppose the ground is slightly uneven so there exists a nonzero angle between the launch rail and the true vertical $z$. Let the coordinate system $\mathit{O}$ be located at the booster's nozzle exit oriented with the $z$ axis aligned truly upwards, $x$ perpendicular to $z$ and in the direction of the rocket's center of mass, and $y$ satisfying the right-hand rule. Consider the case in which the launch rail is misaligned with the vertical. In general, such a case moves the initial position of the center of mass and gives nonzero initial acceleration components in the $x$ and $y$ directions. Fig. (\ref{fig:initialOrientation}) displays the special two-dimensional case when no $y$-displacement is given.
+\begin{figure}[H]
+\begin{center}
+\pgfmathsetmacro{\sizez}{5} % Size of z-axis
+\pgfmathsetmacro{\sizex}{10} % Size of z-axis
+\pgfmathsetmacro{\Ocgx}{4.5} % x-location of Ocg
+\pgfmathsetmacro{\Ocgy}{-1} % y-location of Ocg
+\pgfmathsetmacro{\m}{1} %1.15 Slope of railing and cg line
+\pgfmathsetmacro{\dphi}{90-atan(\m)}
+\pgfmathsetmacro{\secdphi}{sec(\dphi)}
+\pgfmathsetmacro{\mSqPO}{1+\m*\m}
+\pgfmathsetmacro{\perpm}{-1/\m} % Slope of line perpendicular to railing and cg line
+\pgfmathsetmacro{\maxXRail}{\sizez/\m} % Maximum x-coord for railing
+\pgfmathsetmacro{\perpperc}{0.695} %0.675 Percentage along x axis with left side of perp line on railing
+\pgfmathsetmacro{\perpOnex}{\perpperc*\maxXRail} % x-location of left side of perp line
+\pgfmathsetmacro{\perpOney}{\perpOnex*\m} % y-location of left side of perp line
+\pgfmathsetmacro{\perpTwox}{\perpOnex+\m*\m*\Ocgx/\mSqPO-\m*\Ocgy/\mSqPO} % x-location of left side of perp line
+\pgfmathsetmacro{\perpTwoy}{\perpOney+\perpm*\perpTwox-\perpm*\perpOnex} % y-location of left side of perp line
+\pgfmathsetmacro{\perpTwoxMinusperpOnex}{\perpTwox-\perpOnex}
+\pgfmathsetmacro{\perpTwoyMinusperpOney}{\perpTwoy-\perpOney}
+\pgfmathsetmacro{\hypot}{sqrt(\perpTwoxMinusperpOnex*\perpTwoxMinusperpOnex + \perpTwoyMinusperpOney*\perpTwoyMinusperpOney)}
+\pgfmathsetmacro{\longx}{\perpOnex + \hypot*\secdphi}
+
+\pgfmathsetmacro{\CMscale}{0.2}
+\begin{tikzpicture}[thick]
+% Define points
+\coordinate (O) at (0,0) node[anchor=north east]{$\mathit{O}$};
+\coordinate (x) at (\sizex+1,0);
+\coordinate (z) at (0,\sizez+1.5);
+\coordinate (rail) at (\maxXRail,\sizez);
+\coordinate (OcgBot) at (\Ocgx,\Ocgy);
+\coordinate (cgTop) at ({\maxXRail + \Ocgx},{\sizez + \Ocgy});
+\coordinate (perpOne) at (\perpOnex,\perpOney);
+\coordinate (perpTwo) at (\perpTwox,\perpTwoy);
+\coordinate (long) at (\longx,\perpOney);
+\coordinate (longsmall) at (\longx,\perpTwoy);
+
+% Draw lines
+\draw[->] (O) -- (x) node[anchor=west]{$x$};
+\draw[->] (O) -- (z) node[anchor=north east]{$z$};
+\draw (O)--(rail) node[anchor=south]{Rail axis};
+\draw (OcgBot)--(cgTop) node[anchor=south]{CM axis} node[anchor=west,pos=0.01]{$\ell_{cm}$};
+\draw (perpOne)--(perpTwo) node[anchor=north east,pos=0.6,rotate=-45]{$\delta_r$};
+\draw (perpOne)--(long) node[anchor=south,pos=0.52]{$\delta_r\sec\delta_{\phi}$};
+\draw (long)--(longsmall) node[anchor=base west, pos=0.5]{$\delta_r\sin\delta_{\phi}$};%node[anchor=south east, rotate=-90]{$\left(\delta_r + \frac{d}{2}\right)\sin\delta_{\phi}$};
+\draw (longsmall)--(perpTwo) node[anchor=north, pos=0.5]{$\delta_r\cos\delta_{\phi}$};
+\draw (long)--(perpTwo);
+
+% Draw CM
+%\filldraw (long) circle[radius=5pt];
+\begin{scope}[shift=(long)]
+    \draw (0,0) circle (\CMscale) node[anchor=west]{$\,$ Mass center};
+	\draw[fill=black!97] (0,0) --  (0:\CMscale) arc(0:90:\CMscale) -- cycle;
+	\draw[fill=black!97] (0,0) --  (180:\CMscale) arc(180:270:\CMscale) -- cycle;
+    \centerarc[black,thick](0,0)(90:360:\CMscale)
+\end{scope}
+
+
+
+% Draw right angles
+\tkzMarkRightAngle[draw=black,size=.4](long,perpTwo,perpOne)
+\tkzMarkRightAngle[draw=black,size=.4](long,longsmall,perpTwo)
+
+% Labels
+%\tkzLabelSegment[below=2pt](O,A){\textit{adjacent leg}}
+%\tkzLabelSegment[left=2pt](O,B){\textit{opposite leg}}
+%\tkzLabelSegment[above right=2pt](A,B){\textit{hypotenuse}}
+
+% Mark other angles
+\tkzMarkAngle[size=1.5cm](rail,O,z)
+\tkzLabelAngle[anchor=south,pos=1.45](rail,O,z){$\delta_{\phi}$}
+
+\tkzMarkAngle[size=0.6cm](perpTwo,perpOne,long)
+\tkzLabelAngle[anchor=base east, pos=1.25](perpTwo,perpOne,long){$\delta_{\phi}$}
+
+\tkzMarkAngle[size=0.6cm](perpTwo,long,longsmall)
+\tkzLabelAngle[anchor=base, pos=1](perpTwo,long,longsmall){$\delta_{\phi}$}
+\end{tikzpicture}
+\end{center}
+\caption{Geometric diagram to examine how the initial conditions vary with exaggerated nonzero $\delta_{\phi}$}
+\label{fig:initialOrientation}
+\end{figure}
+The variables appearing, as well as the special-case, non-appearing angle $\delta_\theta$ made with the $x$ axis, are all strictly measurable values and defined as
+\begin{longtable}[l]{l l l}
+$\ell_{cm}$ & $[\si{\m}]$ & Distance from first stage nozzle exit to the vehicle's center of mass \\
+$\delta_r$ & $[\si{\m}]$ & Perpendicular distance between launch rail and mass center axes \\
+$\delta_\phi$ & $[\si{\radian}]$ & Offset angle of launch rail with the true vertical $z$ \\
+$\delta_\theta$ & $[\si{\radian}]$ & Offset angle of launch rail with the horizontal relative to the $x$ axis
+\end{longtable}
+
+The problem of finding the new mass center location in the $\mathrm{O}$ frame can be solved geometrically by Fig. (\ref{fig:initialOrientation}) with a simple extension to include $y$-displacement through the angle $\delta_\theta$. Alternatively, the problem may be solved analytically by posing it as one of vector transformation. The solution is uniquely determined and independent of the method of solution in either case.
+
+To consider the transformation problem, suppose first that a Cartesian frame with origin $\widetilde{\mathrm{O}}$ has its $\tilde{z}$ axis oriented along the launch rail. Now consider the $\mathrm{O}$ frame such that $\mathrm{O} = \widetilde{\mathrm{O}}$ but $z$ and $x$ are separated from $\tilde{z}$ and the $\tilde{x}$-$\tilde{y}$ plane respectively by an angle $\delta_\phi$. Further suppose that the $\tilde{x}$ axis is separated by an angle $\delta_\theta$ from the projection of the $x$ axis onto the $\tilde{x}$-$\tilde{y}$ plane. Then the position of the mass center in the $\mathrm{O}$ frame is related to the position of the mass center in the $\widetilde{\mathrm{O}}$ frame by
+\begin{align}
+\vec{r}_{cm\mathrm{,O}} &= \mathbf{R}_{\tilde{z}}(\delta_\theta) \mathbf{R}_{\tilde{y}}(\delta_\phi) \vec{r}_{cm\mathrm{,\widetilde{\mathrm{O}}}} \\
+&= \begin{bmatrix}\cos\delta_\theta & -\sin\delta_\theta & 0 \\ \sin\delta_\theta & \cos\delta_\theta & 0 \\ 0 & 0 & 1\end{bmatrix} \begin{bmatrix}\cos\delta_\phi & 0 & \sin\delta_\phi \\ 0 & 1 & 0 \\ -\sin\delta_\phi & 0 & \cos\delta_\phi\end{bmatrix} \begin{bmatrix}\delta_r \\ 0 \\ \ell_{cm}\end{bmatrix} \\
+&= \begin{bmatrix}\big(\ell_{cm} \sin \delta_\phi + \delta_r \cos \delta_\phi\big) \cos\delta_\theta \\ \big(\ell_{cm} \sin \delta_\phi + \delta_r \cos \delta_\phi\big) \sin\delta_\theta \\ \ell_{cm} \cos \delta_\phi - \delta_r \sin \delta_\phi\end{bmatrix} \quad [\si{\m}].
+\end{align}
+Furthermore, if the launch vehicle is prescribed a small initial velocity $v_\epsilon$ such that the equations of motion are nonsingular for times near $t = 0$, then a local solution only might exist for times $t > 0$ until touchdown. It is therefore advantageous to convert the three, second-order ordinary differential equations into six, first-order ordinary differential equations to place them in convenient form to study the existence and uniqueness of any potential solutions. If solutions do exist and are unique, then this form is also the desired form for obtaining numerical solutions. With this motivation, let the vehicle's state be defined as
+\begin{equation}
+\mathbf{x} := \begin{bmatrix}x & y & z & \dot{x} & \dot{y} & \dot{z}\end{bmatrix}^T
+\end{equation}
+such that $\dot{\mathbf{x}} = \textit{\textbf{f}}\hspace{0.4ex}(\mathbf{x}, t)$. The equations of motion are then written
+\begin{align}
+\dot{\mathbf{x}}(t) = \begin{bmatrix}\dot{x} \\ \dot{y} \\ \dot{z} \\ \frac{\left(F_t -  \frac{1}{2} \rho (\dot{x}^2 + \dot{y}^2 + \dot{z}^2) C_d A\right)\dot{x}}{(\dot{m} t + m_0)\sqrt{\dot{x}^2 + \dot{y}^2 + \dot{z}^2}} + \frac{F_{\chi_{n,x}}}{\dot{m}t + m_0} \\ \frac{\left(F_t - \frac{1}{2} \rho (\dot{x}^2 + \dot{y}^2 + \dot{z}^2) C_d A\right)\dot{y}}{(\dot{m} t + m_0)\sqrt{\dot{x}^2 + \dot{y}^2 + \dot{z}^2}} + \frac{F_{\chi_{n,y}}}{\dot{m}t + m_0} \\ \frac{\left(F_t - \frac{1}{2} \rho (\dot{x}^2 + \dot{y}^2 + \dot{z}^2) C_d A\right)\dot{z}}{(\dot{m} t + m_0)\sqrt{\dot{x}^2 + \dot{y}^2 + \dot{z}^2}} - g + \frac{F_{\chi_{n,z}}}{\dot{m}t + m_0}\end{bmatrix}, && \mathbf{x}(0) = \begin{bmatrix} \big(\ell_{\mathrm{cm}} \sin \delta_\phi + \delta_r \cos \delta_\phi\big) \cos\delta_\theta \\ \big(\ell_{\mathrm{cm}} \sin \delta_\phi + \delta_r \cos \delta_\phi\big) \sin\delta_\theta \\ \ell_{\mathrm{cm}} \cos \delta_\phi - \delta_r \sin \delta_\phi \\ v_{\epsilon}\sin\delta_{\phi}\cos\delta_\theta \\ v_{\epsilon}\sin\delta_{\phi}\sin\delta_\theta \\ v_{\epsilon}\cos\delta_{\phi} \end{bmatrix}.
+\end{align}
+
+
+\section{Earth and Atmospheric Models}
+The Earth is assumed to take on the shape of a spheroid with major and minor axes equivalent to the equatorial and polar radii ($R_{eq}$ and $R_{po}$) respectively. As such, the geocentric radius to the (smooth) surface at a geodetic latitude $\varphi$ is given by
+\begin{equation}
+R = \sqrt{\frac{R_{eq}^4 \cos^2 \varphi + R_{po}^4 \sin^2 \varphi}{R_{eq}^2 \cos^2 \varphi + R_{po}^2 \sin^2 \varphi}} \quad [\si{\m}].
+\end{equation}
+Local changes in elevation relative to sea level are accounted for in the altitude as to avoid false positives between sea level and ground level. In other words, the altitude $z$ references zero at the local geographic elevation $h$ such that the rocket is a distance $R + h + z$ from the Earth's center, i.e. $h + z$ from the surface (sea level).
+
+Earth's atmosphere is modelled using the World Meteorological Organization's U.S. 1976 Standard Atmosphere extended to 1000 km. The theoretical gravitational acceleration at a sea-level geodetic latitude $\varphi$ is
+\begin{equation}
+g_\varphi \sim 9.780356 \, (1 + 0.0052885 \sin^2\varphi - 0.0000059 \sin^2 2\varphi) \quad [\si{\m/\s\squared}]
+\end{equation}
+such that the gravitational acceleration is
+\begin{equation}
+g = \frac{R^2}{(R + h + z)^2} \, g_\varphi \quad [\si{\m/\s\squared}].
+\end{equation}
+Also, the geopotential altitude is
+\begin{equation}
+Z_g = \frac{R \, (h + z)}{R + h + z} \quad [\si{\m}],
+\end{equation}
+which determines the atmospheric regime from which to take values for the density, pressure, and temperature. These values for $Z_g \leq \SI{84.852}{\km}$ compose the U.S. 1976 Standard Atmosphere and are tabulated in functional form in Tab. (\ref{tab:atmos}).
+\begin{table}[H]
+\caption{Temperatures and pressures according to the 1976 U.S. Standard Atmosphere as a function of geopotential altitude} \label{tab:atmos}
+\centering
+{\tabulinesep=1.0mm
+\begin{tabu}{c | c | l}
+Geop. Alt. $Z_g \ [\si{\km}]$ & Temperature $T \ [\si{\K}]$ & Pressure $p \ [\si{\Pa}]$ \\
+\hline $0 - 11$  & $288.15 - 6.5 Z_g$ & $101325.0 \left(\frac{288.15}{288.15 - 6.5 Z_g}\right)^{-34.1632/6.5}$ \\
+\hline $11 - 20$ & $216.65 + 0.0 Z_g$ & $22632.06 \, e^{-34.1632 (Z_g - 11) / 216.65}$ \\
+\hline $20 - 32$ & $196.65 + 1.0 Z_g$ & $5474.889 \left(\frac{216.65}{(216.65 + (Z_g - 20)}\right)^{34.1632}$ \\
+\hline $32 - 47$ & $139.05 + 2.8 Z_g$ & $868.0187 \left(\frac{228.65}{228.65 + 2.8(Z_g - 32)}\right)^{34.1632 / 2.8}$ \\
+\hline $47 - 51$ & $270.65 + 0.0 Z_g$ & $110.9063 \, e^{-34.1632 (Z_g - 47) / 270.65}$ \\
+\hline $51 - 71$ & $413.45 - 2.8 Z_g$ & $66.93887 \left(\frac{270.65}{270.65 - 2.8(Z_g - 51)}\right)^{-34.1632 / 2.8}$ \\
+\hline $71 - 84.852$ & $356.65 - 2.0 Z_g$ & $3.956420 \left(\frac{214.65}{214.65 - 2 (Z_g - 71)}\right)^{-34.1632 / 2}$
+\end{tabu}}
+\end{table}
+Under this model, air is assumed to be a perfect gas with gas constant $R = 287.057 \ [\si{\J/\kg \,\K}]$, understood not to be the Earth's spheroidal radius by context, with heat capacity ratio $\gamma = 1.4$ such that the air density within these geopotential altitudes follows the ideal gas law.
+\begin{equation}
+\rho = \frac{p}{R T} \quad [\si{\kg/\m\cubed}] \label{eq:ideal gas law}
+\end{equation}
+The extended atmosphere in Tabs. (\ref{tab:atmosExtendedT} -- \ref{tab:atmosExtendedrho}) are used for higher geopotential altitudes, though for these values, the geocentric altitude $z$ is used instead. The values are listed below in in order of previous appearance (temperature, pressure, density).
+\begin{table}[H]
+\caption{Temperatures according to the extended U.S. 1976 Standard Atmosphere} \label{tab:atmosExtendedT}
+\centering
+{\tabulinesep=1.0mm
+\begin{tabu}{c | c}
+Alt. $z \ [\si{\km}]$ & Temperature $T \ [\si{\K}]$ \\
+\hline $86 - 91$ & $186.8673$ \\
+\hline $\,\ 91 - 110$  & $263.1905 - 76.3232 \sqrt{1 + \left(\frac{z - 91}{19.9429}\right)^{\!2}}$ \\
+\hline $110 - 120$ & $240 + 12 (z - 110)$ \\
+\hline $120 - 1000$ & $1000 - 640 \, e^{-0.01875 (z - 120) \frac{6356.766 + 120}{6356.766 + z}}$
+\end{tabu}}
+\end{table}
+
+The expression for air pressure is an exponential power law of the form
+\begin{equation}
+p = e^{A_p z^4 + B_p z^3 + C_p z^2 + D_p z + E_p} \quad [\si{\Pa}],
+\end{equation}
+whose coefficients are given below in Tab. (\ref{tab:atmosExtendedP}).
+%\begin{table}[H] % OLD TABLE WITH POWERS OF 10
+%\caption{Pressure exponential power law coefficients for geocentric altitudes within the extended U.S. 1976 Standard Atmosphere} \label{tab:atmosExtendedP}
+%\centering
+%{\tabulinesep=1.0mm
+%\begin{tabu}{c | c | c | c | c | c}
+%Alt. $z \ [\si{\km}]$ & $A_p$ & $B_p$ & $C_p$ & $D_p$ & $E_p$ \\
+%\hline $86 - 91$   & $0.000000$ & $2.159582\cdot 10^{-6}$ & $-4.836957\cdot 10^{-4}$ & $-0.1425192$ & $13.47530$ \\
+%\hline $91 - 100$  & $0.000000$ & $3.304895\cdot 10^{-5}$ & $-0.009062730$ & $0.6516698$ & $-11.03037$ \\
+%\hline $100 - 110$ & $0.000000$ & $6.693926\cdot 10^{-5}$ & $-0.01945388$ & $1.719080$ & $-47.75030$ \\
+%\hline $110 - 120$ & $0.000000$ & $-6.539316\cdot 10^{-5}$ & $0.02485568$ & $-3.223620$ & $135.9355$ \\
+%\hline $120 - 150$ & $2.283506\cdot 10^{-7}$ & $-1.343221\cdot 10^{-4}$ & $0.02999016$ & $-3.055446$ & $113.5764$ \\
+%\hline $150 - 200$ & $1.209434\cdot 10^{-8}$ & $-9.692458\cdot 10^{-6}$ & $0.003002041$ & $-0.4523015$ & $19.19151$ \\
+%\hline $200 - 300$ & $8.113942\cdot 10^{-10}$ & $-9.822568\cdot 10^{-7}$ & $4.687616\cdot 10^{-4}$ & $-0.1231710$ & $3.067409$ \\
+%\hline $300 - 500$ & $9.814674\cdot 10^{-11}$ & $-1.654439\cdot 10^{-7}$ & $1.148115\cdot 10^{-4}$ & $-0.05431334$ & $-2.011365$ \\
+%\hline $500 - 750$ & $-7.835161\cdot 10^{-11}$ & $1.964589\cdot 10^{-7}$ & $-1.657213\cdot 10^{-4}$ & $0.04305869$ & $-14.77132$ \\
+%\hline $750 - 1000$ & $2.813255\cdot 10^{-11}$ & $-1.120689\cdot 10^{-7}$ & $1.695568\cdot 10^{-4}$ & $-0.1188941$ & $14.56718$ \\
+%\end{tabu}}
+%\end{table}
+\begin{table}[H]
+\caption{Pressure exponential power law coefficients for geocentric altitudes within the extended U.S. 1976 Standard Atmosphere} \label{tab:atmosExtendedP}
+\centering
+{\tabulinesep=1.0mm
+\begin{tabu}{c | c | c | c | c | c}
+Alt. $z \ [\si{\km}]$ & $10^{11} \cdot A_p \ [\si{\km^{-4}}]$ & $10^7 \cdot B_p \ [\si{\km^{-3}}]$ & $10^4 \cdot C_p \ [\si{\km^{-2}}]$ & $D_p \ [\si{\km^{-1}}]$ & $E_p \ [\ ]$ \\
+\hline $86 - 91$   & $0.000000$ & $21.59582$ & $-4.836957$ & $-0.1425192$ & $13.47530$ \\
+\hline $\,\ 91 - 100$  & $0.000000$ & $330.4895$ & $-90.62730$ & $0.6516698$ & $-11.03037$ \\
+\hline $100 - 110$ & $0.000000$ & $0.6693926$ & $-194.5388$ & $1.719080$ & $-47.75030$ \\
+\hline $110 - 120$ & $0.000000$ & $-0.6539316$ & $248.5568$ & $-3.223620$ & $135.9355$ \\
+\hline $120 - 150$ & $22835.06$ & $-1343.221$ & $299.9016$ & $-3.055446$ & $113.5764$ \\
+\hline $150 - 200$ & $1209.434$ & $-96.92458$ & $30.02041$ & $-0.4523015$ & $19.19151$ \\
+\hline $200 - 300$ & $81.13942$ & $-9.822568$ & $4.687616$ & $-0.1231710$ & $3.067409$ \\
+\hline $300 - 500$ & $9.814674$ & $-1.654439$ & $1.148115$ & $-0.05431334$ & $-2.011365$ \\
+\hline $500 - 750$ & $-7.835161$ & $1.964589$ & $-1.657213$ & $0.04305869$ & $-14.77132$ \\
+\hline $750 - 1000$ & $2.813255$ & $-1.120689$ & $1.695568$ & $-0.1188941$ & $14.56718$ \\
+\end{tabu}}
+\end{table}
+
+
+
+
+
+
+Similarly, the air density follows the identical form
+\begin{equation}
+\rho = e^{A_\rho z^4 + B_\rho z^3 + C_\rho z^2 + D_\rho z + E_\rho} \quad [\si{\kg/\m\cubed}],
+\end{equation}
+whose coefficients are given below in Tab. (\ref{tab:atmosExtendedrho}).
+%\begin{table}[H]
+%\caption{Density exponential power law coefficients for geocentric altitudes within the extended U.S. 1976 Standard Atmosphere} \label{tab:atmosExtendedrho}
+%\centering
+%{\tabulinesep=1.0mm
+%\begin{tabu}{c | c | c | c | c | c}
+%Geoc. Alt. $z \ [\si{\km}]$ & $A_\rho$ & $B_\rho$ & $C_\rho$ & $D_\rho$ & $E_\rho$ \\
+%\hline $86 - 91$   & 0.000000 & -3.322622E-06 & 9.111460E-04 & -0.2609971 & 5.944694 \\
+%\hline $91 - 100$  & 0.000000 & 2.873405E-05 & -0.008492037 & 0.6541179 & -23.62010 \\
+%\hline $100 - 110$ & -1.240774E-05 & 0.005162063 & -0.8048342 & 55.55996 & -1443.338 \\
+%\hline $110 - 120$ & 0.00000 & -8.854164E-05 & 0.03373254 & -4.390837 & 176.5294 \\
+%\hline $120 - 150$ & 3.661771E-07 & -2.154344E-04 & 0.04809214 & -4.884744 & 172.3597 \\
+%\hline $150 - 200$ & 1.906032E-08 & –1.527799E-05 & 0.004724294 & –0.6992340 & 20.50921 \\
+%\hline $200 - 300$ & 1.199282E-09 & –1.451051E-06 & 6.910474E-04 & –0.1736220 & –5.321644 \\
+%\hline $300 - 500$ & 1.140564E-10 & –2.130756E-07 & 1.570762E-04 & –0.07029296 & –12.89844 \\
+%\hline $500 - 750$ & 8.105631E-12 & –2.358417E-09 & –2.635110E-06 & –0.01562608 & –20.02246 \\
+%\hline $750 - 1000$ & –3.701195E-12 & –8.608611E-09 & 5.118829E-05 & –0.06600998 & –6.137674 \\
+%\end{tabu}}
+%\end{table}
+\begin{table}[H]
+\caption{Density exponential power law coefficients for geocentric altitudes within the extended U.S. 1976 Standard Atmosphere} \label{tab:atmosExtendedrho}
+\centering
+{\tabulinesep=1.0mm
+\begin{tabu}{c | c | c | c | c | c}
+Alt. $z \ [\si{\km}]$ & $10^{12} \cdot A_\rho \ [\si{\km^{-4}}]$ & $10^9 \cdot B_\rho \ [\si{\km^{-3}}]$ & $10^6 \cdot C_\rho \ [\si{\km^{-2}}]$ & $D_\rho \ [\si{\km^{-1}}]$ & $E_\rho \ [\ ]$ \\
+\hline $86 - 91$   & $0.000000$ & $-3322622$ & $911.1460$ & $-0.2609971$ & $5.944694$ \\
+\hline $\,\ 91 - 100$  & $0.000000$ & $28734.05$ & $-8492.037$ & $0.6541179$ & $-23.62010$ \\
+\hline $100 - 110$ & $-12407740$ & $5162063$ & $-804834.2$ & $55.55996$ & $-1443.338$ \\
+\hline $110 - 120$ & $0.00000$ & $-88541.64$ & $33732.54$ & $-4.390837$ & $176.5294$ \\
+\hline $120 - 150$ & $366177.1$ & $-215434.4$ & $48092.14$ & $-4.884744$ & $172.3597$ \\
+\hline $150 - 200$ & $19060.32$ & $-15277.99$ & $4724.294$ & $-0.6992340$ & $20.50921$ \\
+\hline $200 - 300$ & $1199.282$ & $-1451.051$ & $691.0474$ & $-0.1736220$ & $-5.321644$ \\
+\hline $300 - 500$ & $114.0564$ & $-213.0756$ & $157.0762$ & $-0.07029296$ & $-12.89844$ \\
+\hline $500 - 750$ & $8.105631$ & $-2.358417$ & $-2.635110$ & $-0.01562608$ & $-20.02246$ \\
+\hline $750 - 1000$ & $-3.701195$ & $-8.608611$ & $51.18829$ & $-0.06600998$ & $-6.137674$ \\
+\end{tabu}}
+\end{table}
+The standard atmosphere can be shifted in temperature and density to account for real offsets from the model. If $T_0$ is the real temperature at ground-level and $T_{0,0}$ is that predicted by the model, then the temperature correction is $\Delta T = T_0 - T_{0,0}$ such that the temperature for all altitudes then becomes
+\begin{align}
+T_c &= T + \Delta T \quad [\si{\K}].
+\intertext{Accordingly, the density follows (\ref{eq:ideal gas law}) and is written}
+\rho_c &= \frac{p}{R T_c} \quad [\si{\kg/\m\cubed}].
+\end{align}
+The subscript notation for the corrected temperature and density, however, is dropped and subsequently are respectively designated as temperature $T$ and density $\rho$ for simplicity. Furthermore, the specific potential at altitude $z$ provides a measure of the physical, as opposed to chemical, potential energy contained within the rocket and is given by
+\begin{align}
+\Phi = 9.80665 \, Z_g \quad [\si{\m\squared/\s\squared}].
+\end{align}	
+
+
+\section{Parachute Model}
+Suppose a circular parachute exhibits a radius $r_d$ when flattened and an average radius $r_p$ when fully unfurled and inflated during descent. Further suppose that the fabric is rigid enough that negligibly small amounts of stretching occur when met with varying air resistance. 
+%The characteristic area of the parachute in flight, $A_p$, is the projection of the hemisphere surface area, $S_p$, onto the plane perpendicular to the velocity vector, i.e. the characteristic area is the area enclosed by the dashed circle in Fig. (\ref{fig:parachute}).
+Let $S_p$ be the surface area of the hemisphere induced by the inflated parachute and $A_p$ be the characteristic area enclosed by the dashed curve in Fig. (\ref{fig:parachute}).
+% Source: https://tex.stackexchange.com/questions/250719/drawing-a-shaded-hemisphere-using-tikz
+\tdplotsetmaincoords{60}{110}%20%110
+\begin{figure}[H]
+\begin{center}
+\begin{tikzpicture}[scale=4.4,tdplot_main_coords]
+\pgfmathsetmacro{\radiusp}{0.6}
+\pgfmathsetmacro{\thetavec}{0}
+\pgfmathsetmacro{\phivec}{0}
+\pgfmathsetmacro{\radius}{1}
+\pgfmathsetmacro{\thetarp}{60}
+\pgfmathsetmacro{\thetar}{-30}
+\pgfmathsetmacro{\xrp}{\radiusp*cos(\thetarp)}
+\pgfmathsetmacro{\yrp}{\radiusp*sin(\thetarp)}
+\pgfmathsetmacro{\xr}{\radius*cos(\thetar)}
+\pgfmathsetmacro{\yr}{\radius*sin(\thetar)}
+
+% Draw circle of radius r
+\draw[thick,->] (0,0,0) -- (\xr,\yr,0) node[anchor=north east]{$r_d$};
+\draw[thick,fill=cyan!80,opacity=0.2] (0,0,0) circle (1 and 1);
+
+%draw the main coordinate system axes
+\draw[thick,->] (0,0,0) -- (\xrp,\yrp,0) node[anchor=north west]{$r_p$};
+
+\tdplotsetthetaplanecoords{\phivec}
+
+%draw some dashed arcs, demonstrating direct arc drawing
+\draw[tdplot_rotated_coords] (\radiusp,0,0) arc (0:90:\radiusp);
+
+\draw[dashed] (\radiusp,0,0) arc (0:360:\radiusp);
+\shade[ball color=blue!10!white,opacity=0.3] (0.6cm,0) arc (0:-180:0.6cm and 3mm) arc (180:0:0.6cm and 0.6cm);
+% (-z x y)
+% Show velocity vector on descent
+\draw[thick,->] (0,0,0) -- (0,0,-0.5) node[anchor=south east]{$v$};
+%\coordinate (O) at (0,0,0) node[anchor=south west]{$\mathit{O}'$};
+\draw[thick,->] (0,0,0) -- (1,0,0) node[anchor=north east]{$\xi$};
+\draw[thick,->] (0,0,0) -- (0,1,0) node[anchor=north west]{$\eta$};
+\draw[thick,->] (0,0,0) -- (0,0,0.75) node[anchor=west]{$\zeta$};%0.83
+
+\node (none) at (0.25,-0.8,0) {$A_d$};
+\node (none) at (0.10,-0.35,0) {$A_p$};
+\node (none) at (0,0.2,0.5) {$S_p$};
+\end{tikzpicture}
+\end{center}
+\caption{Depiction of flattened and inflated parachute modeled as a disk and hemisphere}
+\label{fig:parachute}
+\end{figure}
+With a fabric that has negligible stretching, any geometric transformation yields a surface area invariant. In particular, the area of the disk $A_d$ and surface area of the hemisphere $S_p$ are identically the same. Consequently,
+\begin{equation}
+\frac{r_p}{r_d} = \frac{1}{\sqrt{2}} \iff \frac{A_p}{A_d} = \frac{1}{2}.
+\end{equation}
+Thus, the characteristic area associated with drag during flight is related to the measurable parachute area when unfurled and uninflated as
+\begin{equation}
+A_p = \frac{\pi}{2} r_d^2 \quad [\si{\m\squared}].
+\end{equation}
+Both the drogue and main parachutes fit within this framework and are rated with a drag coefficient of $C_{d,p} = 0.97$. 
+
+The drogue parachute is first deployed as the rocket reaches apogee and begins its descent to the surface. The main parachute deployment is delayed until the rocket reenters the atmosphere to maximize the usage of atmospheric braking while approaching terminal velocity, simultaneously reducing the amount of stress to be handled by the shock cords. If the main chute deployment altitude is $z_m^* = \mathrm{const.} < z(t^*)$, then the times $\tau_p^*$ at which the parachutes are deployed are defined
+\begin{equation}
+\tau_{p}^* =
+\begin{cases}
+t^* & (\text{drogue}) \\
+z^{-1}(z_m^*) & (\text{main for }t > t^*)
+\end{cases}
+\quad [\si{\s}].
+\end{equation}
+
+The deployment dynamics of the characteristic areas and drag coefficients for the drogue and main parachutes are assumed to take on the form
+\begin{align}
+A &= A_p \erf\!\left(\frac{t - \tau_p^*}{\tau_p}\right) \quad [\si{\m\squared}] \\
+C_d &= C_{d,p} \erf\!\left(\frac{t - \tau_p^*}{\tau_p}\right) \quad [\ ],
+\end{align}
+which are added to the characteristic area and drag coefficient of the vehicle itself, where
+\begin{equation}
+\erf(t) = \frac{2}{\sqrt{\pi}} \int_0^t e^{-s^2} \dd{s}
+\end{equation}
+is the error function and
+\begin{equation} 
+\tau_p = 
+\begin{cases}
+2 & (\text{drogue}) \\
+3.5 & (\text{main})
+\end{cases}
+\quad [\si{\s}].
+\end{equation}
+These forms were chosen to simulate the drogue and main parachutes opening in approximately $2\tau_p$ seconds (the error function is odd, monotonically increasing, and $\erf(2) \sim 0.9953$) respectively without overcomplicating the deployment dynamics.
+
+\chapter{Analysis}
+\newpage
+\section{Solution Existence and Uniqueness}
+Studying the existence and uniqueness of a potential solution relies upon the Picard-Lindelh\"of theorem which states that a unique local $C^0$ solution exists if $\textit{\textbf{f}}\hspace{0.4ex}(\mathbf{x}, t)$ is uniformly Lipschitz in $\mathbf{x}$ and continuous in $t$. The term uniformly Lipschitz indicates that a function is bounded in its first derivative. 
+
+The state equation contains $t$ explicitly only in the mass term, which is bounded but continuous at all points except when staging. Thus, if a solution exists, then it must solely belong to times before or after first stage separation. Now let $V_{\pm\Theta}^2 := v^2 \pm v_{\Theta}^2$ and $F_\chi^\Theta$ denote $F_{\chi_n, \Theta}$ for convenience, where $\Theta = x,y,z$, such that the gradient of $\textit{\textbf{f}}\hspace{0.4ex}(\mathbf{x},t)$ without mass terms (i.e. $m = 1$), denoted $\textit{\textbf{f}}_{\slashed{m}}(\mathbf{x})$, is written
+%\begin{equation}
+%\begin{bmatrix}
+%0 & 0 & 0 & 1 & 0 & 0 \\
+%0 & 0 & 0 & 0 & 1 & 0 \\
+%0 & 0 & 0 & 0 & 0 & 1 \\
+%\partial_x F_{\chi_n}^x & \partial_y F_{\chi_n}^x & \partial_z F_{\chi_n}^x - \frac{\rho'(z)}{\rho(z)}\frac{\dot{x}}{v}F_d & \partial_{\dot{x}} F_{\chi_n}^x + \frac{F_t V_{-x}^2  - V_x^2 F_d}{v^3} & \partial_{\dot{y}} F_{\chi_n}^x - \frac{\dot{x}\dot{y}(F_t + F_d)}{v^3} & \partial_{\dot{z}} F_{\chi_n}^x - \frac{\dot{x} \dot{z} \left(F_t + F_d\right)}{v^3} \\
+%\partial_x F_{\chi_n}^y & \partial_y F_{\chi_n}^y & \partial_z F_{\chi_n}^y - \frac{\rho'(z)}{\rho(z)}\frac{\dot{y}}{v}F_d & \partial_{\dot{x}} F_{\chi_n}^y - \frac{\dot{x}\dot{y}(F_t + F_d)}{v^3}  & \partial_{\dot{y}} F_{\chi_n}^y + \frac{F_t V_{-y}^2 - V_y^2 F_d}{v^3} & \partial_{\dot{z}} F_{\chi_n}^y - \frac{\dot{y} \dot{z} \left(F_d + F_t\right)}{v^3} \\
+%\partial_x F_{\chi_n}^z & \partial_y F_{\chi_n}^z & \partial_z F_{\chi_n}^z - \frac{\rho'(z)}{\rho(z)}\frac{\dot{z}}{v}F_d & \partial_{\dot{x}} F_{\chi_n}^z - \frac{\dot{x} \dot{z} \left(F_t + F_d\right)}{v^3} & \partial_{\dot{y}} F_{\chi_n}^z - \frac{\dot{y} \dot{z} \left(F_t + F_d\right)}{v^3} & \partial_{\dot{z}} F_{\chi_n}^z + \frac{F_t V_{-z}^2 - V_z^2 F_d}{v^3}
+%\end{bmatrix}.
+%\end{equation}
+
+\begin{equation}
+\pdv{\textit{\textbf{f}}_{\slashed{m}}}{\mathbf{x}} = 
+\begin{bmatrix}
+0 & 0 & 0 & 1 & 0 & 0 \\
+0 & 0 & 0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 0 & 0 & 1 \\
+\pdv{F_\chi^x}{x} & \pdv{F_{\chi}^x}{y} & \pdv{F_\chi^x}{z} - \frac{\rho'(z)}{\rho(z)}\frac{\dot{x}}{v}F_d & \pdv{F_\chi^x}{\dot{x}} + \frac{F_t V_{-x}^2  - V_x^2 F_d}{v^3} & \pdv{F_\chi^x}{\dot{y}} - \frac{\dot{x}\dot{y}(F_t + F_d)}{v^3} & \pdv{F_\chi^x}{\dot{z}} - \frac{\dot{x} \dot{z} \left(F_t + F_d\right)}{v^3} \\
+\pdv{F_\chi^y}{x} & \pdv{F_\chi^y}{y} & \pdv{F_\chi^y}{z} - \frac{\rho'(z)}{\rho(z)}\frac{\dot{y}}{v}F_d & \pdv{F_\chi^y}{\dot{x}} - \frac{\dot{x}\dot{y}(F_t + F_d)}{v^3}  & \pdv{F_\chi^y}{\dot{y}} + \frac{F_t V_{-y}^2 - V_y^2 F_d}{v^3} & \pdv{F_\chi^y}{\dot{z}} - \frac{\dot{y} \dot{z} \left(F_d + F_t\right)}{v^3} \\
+\pdv{F_\chi^z}{x} & \pdv{F_\chi^z}{y} & \pdv{F_\chi^z}{z} - \frac{\rho'(z)}{\rho(z)}\frac{\dot{z}}{v}F_d - \frac{2g}{R + h + z} & \pdv{F_\chi^z}{\dot{x}} - \frac{\dot{x} \dot{z} \left(F_t + F_d\right)}{v^3} & \pdv{F_\chi^z}{\dot{y}} - \frac{\dot{y} \dot{z} \left(F_t + F_d\right)}{v^3} & \!\!\pdv{F_\chi^z}{\dot{z}} + \frac{F_t V_{-z}^2 - V_z^2 F_d}{v^3}
+\end{bmatrix}.
+\end{equation}
+Performing this operation in the classical sense is meaningless due to the everywhere-discontinuity of the stochastic force, but under a weak derivative interpretation,
+\begin{equation}
+\pdv{\textit{\textbf{f}}_{\slashed{m}}}{\mathbf{x}} = 
+\begin{bmatrix}
+0 & 0 & 0 & 1 & 0 & 0 \\
+ 0 & 0 & 0 & 0 & 1 & 0 \\
+ 0 & 0 & 0 & 0 & 0 & 1 \\
+ 0 & 0 & -\frac{\rho'(z)}{\rho(z)} \frac{\dot{x}}{v}F_d & \frac{F_t V_{-x}^2 - V_x^2 F_d}{v^3} & -\frac{\dot{x} \dot{y} \left(F_t + F_d\right)}{v^3} & -\frac{\dot{x} \dot{z} \left(F_t + F_d\right)}{v^3} \\
+ 0 & 0 & -\frac{\rho'(z)}{\rho(z)} \frac{\dot{y}}{v}F_d & -\frac{\dot{x} \dot{y} \left(F_t + F_d\right)}{v^3} & \frac{F_t
+   V_{-y}^2 - V_y^2 F_d}{v^3} & -\frac{\dot{y} \dot{z} \left(F_t + F_d\right)}{v^3} \\
+ 0 & 0 & - \frac{\rho'(z)}{\rho(z)} \frac{\dot{z}}{v}F_d - \frac{2g}{R + h + z} & -\frac{\dot{x} \dot{z} \left(F_t + F_d\right)}{v^3} & -\frac{\dot{y} \dot{z} \left(F_t + F_d\right)}{v^3} & \frac{F_t V_{-z}^2 - V_z^2 F_d}{v^3}
+\end{bmatrix}.
+\end{equation}
+
+Thus, for all values $\mathbf{x}$ with $v > 0$, the Jacobian satisfies
+\begin{equation}
+||\nabla \textit{\textbf{f}}_{\slashed{m}}(\mathbf{x})||_{\mathrm{max}} < \infty.
+\end{equation}
+This inequality holds since $\rho(z) > 0$ and is bounded, $\rho'(z)$, though piecewise continuous, is bounded since $\rho$ is bounded, and $R + h + z > 0$. Also, the velocity components, and therefore drag, are bounded given a finite amount of thrust.
+
+Consequently, $\textit{\textbf{f}}\hspace{0.4ex}(\mathbf{x}, t)$ is uniformly Lipschitz for $v > 0$ and continuous in $t$ for flight regimes before and after stage separation. So by Picard-Lindelh{\"o}f, there exists a smooth, unique solution in each of the flight regimes. These regimes are from launch until stage separation, from stage separation until apogee, and from apogee until landing, for which, at all times, there is a finite amount of thrust and nonzero velocity. 
+
+%Studying the theory of existence and uniqueness, let $\slashed{\nabla}_{\hspace{-0.25ex}\textbf{x}} = \mathbb{I}\nabla_{\hspace{-0.25ex}\textbf{x}}$ be an operator that considers only the diagonal elements of the $6 \times 6$ square matrix formed by the gradient of a vector function $\mathbf{f} : \mathbb{R}^6 \times \mathbb{R} \to \mathbb{R}^6$. Considering the model for the stochastic force as a function of altitude $z$ only, the Jacobian diagonal of the state equation is
+%\begin{equation}
+%\slashed{\nabla}_{\hspace{-0.25ex}\textbf{x}} \textbf{f}\hspace{0.3ex}(\textbf{x}, t) = \mathbb{I}\frac{\partial \dot{\textbf{x}}}{\partial \textbf{x}} = \begin{bmatrix}0 \\ 0 \\ 0 \\ -\frac{u\dot{m}(\dot{y}^2 + \dot{z}^2) + \frac{1}{2}\rho(z) (\dot{x}^2 + \dot{y}^2 + \dot{z}^2) (2\dot{x}^2 + \dot{y}^2 + \dot{z}^2)}{(\dot{x}^2 + \dot{y}^2 + \dot{z}^2)^{3/2}} \\ -\frac{u\dot{m}(\dot{x}^2 + \dot{z}^2) + \frac{1}{2}\rho(z) (\dot{x}^2 + \dot{y}^2 + \dot{z}^2) (\dot{x}^2 + 2\dot{y}^2 + \dot{z}^2)}{(\dot{x}^2 + \dot{y}^2 + \dot{z}^2)^{3/2}} \\ -\frac{u\dot{m}(\dot{x}^2 + \dot{y}^2) + \frac{1}{2}\rho(z) (\dot{x}^2 + \dot{y}^2 + \dot{z}^2) (\dot{x}^2 + \dot{y}^2 + 2\dot{z}^2)}{(\dot{x}^2 + \dot{y}^2 + \dot{z}^2)^{3/2}}\end{bmatrix}.
+%\end{equation}
+%These six functions are continuous on all of $\mathbb{R}^3 \times \mathbb{R}^3\backslash\{\textbf{0}\}$, so a solution exists and is unique as long as $\dot{x}^2 + \dot{y}^2 + \dot{z}^2 \neq 0$. The solution $\mathbf{x}(t)$ is therefore obtained numerically and is done so using Adams-Bashforth-Moulton methods if not stiff and a modified Rosenbrock formula of order 2 if so.
+\section{Numerical Methods} \label{Numerical Methods}
+The solution $\mathbf{x}(t)$ is obtained numerically in \textsl{Matlab} and is done so using Adams-Bashforth-Moulton methods if the system is not stiff and a modified Rosenbrock formula of order 2 otherwise, where the stiffness of the system is determined by the operator based on observation of propagation speed. In most applications, however, the system is generally not stiff if stochastic forcing is zero. Otherwise, the system may be stiff depending on whether the requested error tolerances are too small or not.
+
+During numerical integration, the values for thrust (if thrusting) and coefficient of drag are interpolated using cubic Hermite polynomials. This interpolation method was chosen due to its low-oscillation behavior to avoid gross overestimation and underestimation in regions undergoing large changes in small amounts of times, particularly near the beginning and ending of a staging sequence.
+
+The solvers are split into seven regions in which each solver has a stopping criterion. The values to be output by the solver and those that come from computations are preallocated for memory in $7 \times 1$ cells. The values of time and the state as each stopping criterion is met are exported from the solver into the according base variables. These values are the event states and are used to extract information regarding: launch rail exit velocity, burnout altitudes, changes in velocity due to each stage and any delay between stages, altitude at apogee, descent rates, estimates of the recovery location (at least within a radial vicinity), etc., and the times at which these events occur.
+
+% vvvvvvvvvvvv works but need to uncomment packages and lstset's in preamble
+%The propagating loop is written in the following form
+%\begin{lstlisting}[basicstyle=\tiny, firstnumber=138]
+%% Define the state to be xx = [x, y, z, vx, vy, vz]' with initial conditions xx0.
+%[t{1}, xx{1}, te{1}, xxe{1}, ~] = ode113(@(t, xx, args, seq) odeval(t, xx, args, 1), [t0, tf], xx0, options, args, 1);
+%args = [array2table(xxe{1}(1, 4:6), 'VariableNames', ["vRx", "vRy", "vRz"]), args];
+%ii = 2;
+%while (ii ~= 8 && max(t{ii - 1}) < tf)
+%    if (ii == 3)
+%        if (delay ~= 0)
+%            fprintf("\nPropagating sequence 3 (%s)\n", seqStr(3))
+%            [t{ii}, xx{ii}, te{ii}, xxe{ii}, ~] = ode113(@(t, xx, args, seq) odeval(t, xx, args, ii), [te{ii - 1}, tf], xxe{ii - 1}, options, args, ii);
+%        else
+%            [te{ii}, xxe{ii}] = deal(te{ii - 1}, xxe{ii - 1});
+%        end
+%        ii = ii + 1;
+%    end
+%    fprintf("\nPropagating sequence %1.0f (%s)\n", ii, seqStr(ii))
+%    [t{ii}, xx{ii}, te{ii}, xxe{ii}, ~] = ode113(@(t, xx, args, seq) odeval(t, xx, args, ii), [te{ii - 1}, tf], xxe{ii - 1}, options, args, ii);
+%    ii = ii + 1;
+%end
+%% Check if seq. 3 events were used only as holders from seq. 2 and remove if so
+%if (delay == 0 && te{3} == te{2}), [te{3}, xxe{3}] = deal([], []); end
+%\end{lstlisting}
+%The event states are found by determining which sequence the solver is currently integrating and finding zeros of \texttt{value}. The event states are exported and the solver is stopped when \texttt{value} crosses zero in the indicated direction.
+%\begin{lstlisting}[basicstyle=\tiny, firstnumber=917]
+%function [value, isterminal, direction] = odevents(t, xx, args, seq)
+%    % Events that solvers track
+%    switch seq
+%        case 1
+%            % Create an event when the rail clears
+%            value = xx(1)^2 + xx(2)^2 + (xx(3) - args.Lcm)^2 - args.Ltower^2; % Rail is cleared
+%            isterminal = 1; % Stops the solver
+%            direction = 1; % Find increasing root (of value)
+%        case 2 % Create an event at the first (booster) burnout
+%            value = t - args.tbS1; % Burnout
+%            isterminal = 1; % Stops solver
+%            direction = 1; % Find increasing root
+%        case 3 % Create an event when the delay period ends if delay ~= 0
+%            value = t - (args.tbS1 + args.delay); % Coast over
+%            isterminal = 1; % Stops solver
+%            direction = 1; % Find increasing root
+%        case 4 % Create an event at the second (sustainer) burnout
+%            value = t - (args.tbS1 + args.tbS2 + args.delay); % Burnout
+%            isterminal = 1; % Stops solver
+%            direction = 1; % Find increasing root
+%        case 5 % Create an event at apogee
+%            value = xx(6); % Apogee
+%            isterminal = 1; % Stops solver
+%            direction = -1; % Find decreasing root
+%        case 6 % Create an event when deploying the main chute
+%            value = xx(3) - args.zMC; % Main chute deployed
+%            isterminal = 1; % Stops solver
+%            direction = -1; % Find decreasing root
+%        case 7 % Create an event when touching down
+%            value = xx(3); % Impact
+%            isterminal = 1; % Stops solver - End of trajectory
+%            direction = -1; % Find decreasing root
+%    end
+%end
+%\end{lstlisting}
+
+\section{Data Acquisition}
+The numerical solution contains seven components of information evaluated at converged time steps in the ordinary differential equation solver. All flight characteristics and parameters, with the exception of nonzero stochastic forcing, may be exactly recalculated with these converged values at every step.
+
+The evaluated times $t$ and the Cartesian position $\vec{r}$ and velocity $\vec{v}$ vectors coming directly from the solution $\mathbf{x}$ are direct outputs of the solver. The radial distance and speed relative to the origin $\mathrm{O}$ follow from taking the Euclidean norm of $\vec{r}$ and $\vec{v}$ respectively. The five angles defined across the $\mathrm{O}$ and $\mathrm{O}'$ frames, $\phi, \theta, \phi', \theta',$ and $\psi$, fall from (\ref{theta'phi'} --- \ref{thetaphi}) and (\ref{eq:psirv}). Additionally, the angle $\phi$ can be converted into local elevation via
+\begin{equation}
+\mathrm{El} = \frac{\pi}{2} - \phi \quad [\si{\radian}].
+\end{equation}
+
+The vehicle mass $m$ is obtained from (\ref{eq:m}) and the main forces $F_t, F_d,$ and $F_g$ according to their definitions (\ref{eq:F_t} -- \ref{eq:F_g}).
+%The main forces $F_t, F_d,$ and $F_g$ are obtained according to their definitions (\ref{eq:F_t} -- \ref{eq:F_g}) and the vehicle mass from (\ref{eq:m}).
+
+The ratios modulating the balance of thrust and drag are defined from (\ref{eq:sph2carx} -- \ref{eq:sph2carz}) as
+\begin{align}
+\frac{v_x}{v} = \sin \phi' \cos \theta' && \frac{v_y}{v} = \sin \phi' \sin \theta' && \frac{v_z}{v} = \cos \phi'.
+\end{align}
+Some caution must be taken with these terms, however; they are actually constant during sequence 1 since the launch rail has a fixed orientation to which the rocket must oblige. Though after the launch rail is cleared, they may be taken to be truly as $v_{x,y,z}/v$ respectively.
+
+The atmospheric model provides the evaluation of the gravitational acceleration and air properties - temperature $T$, pressure $p$, and density $\rho$. The dynamic pressure on the vehicle is then
+\begin{equation}
+q = \frac{1}{2}\rho v^2 \quad [\si{\Pa}].
+\end{equation}
+The local speed of sound is also found by computing
+\begin{equation}
+c = \sqrt{\gamma R T} \quad [\si{\m/\s}],
+\end{equation}
+where $\gamma = 1.4$ is the ratio of specific heats for air and $R = 287.057 \ [\si{\J/\kg\,\K}]$ is the gas constant for air, understood not to be Earth's radius from context. Additionally, the dynamic and kinematic air viscosities obey Sutherland's law such that
+\begin{align}
+\mu &= \mu_r \left(\frac{T}{T_r}\right)^{\!3/2} \frac{T_r + 110.4}{T + 110.4} \quad [\si{\Pa \s}] \\
+\nu &= \frac{\mu}{\rho} \quad [\si{\m^2/\s}],
+\end{align}
+where $\mu_r = 1.1716 \cdot 10^{-5} \ [\si{\Pa \ s}]$ and $T_r = 273.15 \ [\si{\K}]$ are known reference values. Together, the Mach and Reynolds numbers are defined
+\begin{align}
+\mathrm{Ma} &= \frac{v}{c} \quad [\ ] \\
+\mathrm{Re} &= \frac{v L}{\nu} \quad [\ ],
+\end{align}
+where the reference length $L$ used in the Reynolds number is the overall length of the rocket during each sequence. The coefficient of drag may be obtained by smooth interpolation of the provided data embedded within \texttt{MaCd} or algebraically solved from (\ref{eq:F_d}).
+
+The acceleration then can be directly computed if the stochastic force is zero from (\ref{eq:accelx} -- \ref{eq:accelz}). Otherwise, the acceleration is estimated by finite difference as
+\begin{equation}
+\vec{a} \sim \frac{\Delta \vec{v}}{\Delta t} \quad [\si{\m/\s\squared}],
+\end{equation}
+and the stochastic force components are estimated by their algebraic solutions to (\ref{eq:accelx} -- \ref{eq:accelz}). From these values, the change in velocity over an interval of time $[t_1, t_2]$ during flight is 
+\begin{equation}
+\Delta \vec{v}_{[t_1, t_2]} = \int_{t_1}^{t_2} \vec{a}(t) \dd{t} \quad [\si{\m/\s}] \label{eq:delv}
+\end{equation}
+such that
+\begin{equation}
+\Delta v_{[t_1, t_2]} = \norm{\Delta \vec{v}_{[t_1, t_2]}} \quad [\si{\m/\s}].
+\end{equation}
+The stochastic force is not considered in the expression (\ref{eq:delv}) because it is assumed to be discontinuous everywhere, so its contribution at all points is nothing since every point is defined on a set of zero measure.
+
+% ORIGINAL
+%In summary, if the event state during sequence $i$ is denoted $\mathbf{x}^{* T}_i \in \mathbb{R} \times \mathbb{R}^6$ such that
+%\begin{equation}
+%\mathbf{x}^*_i := \begin{bmatrix}t_i^* & \mathbf{x}^T(t_i^*)\end{bmatrix},
+%\end{equation}
+%then particular flight events listed in \S\ref{Numerical Methods} are calculated and tabulated in Tab. (\ref{tab:critevents}).
+%\begin{table}[H]
+%\centering
+%\caption{Summary of special values attained throughout the flight} \label{tab:critevents} 
+%{\tabulinesep=1.0mm
+%\begin{tabu}{c | c | c | c}
+%Seq. Elapsed & Critical Event & Time & Value \\ \hline
+%0 to 1 & Launch rail exit velocity & $t^*_1$ & $(\dot{x}^{*2}_1 + \dot{y}^{*2}_1 + \dot{z}^{*2}_1)^{1/2}$ \\  \hline
+%0 to 2 & First stage burnout altitude & $t^*_2$ &  $z^*_2$ \\ \hline
+%0 to 2 & First stage velocity change & $t^*_2$ & $\Delta v_{(0, t^*_2)}$ \\ \hline%$(\dot{x}^{*2}_2 + \dot{y}^{*2}_2 + \dot{z}^{*2}_2)^{1/2}$ \\ \hline
+%2 to 3 & Delay period altitude gain & -- & $z^*_3 - z^*_2$ \\ \hline
+%2 to 3 & Delay period velocity change & -- & $-\Delta v_{(t^*_2, t^*_3)}$ \\ \hline
+%0 to 4 & Second stage burnout altitude & $t^*_4$ & $z^*_4$ \\ \hline
+%3 to 4 & Second stage velocity change & -- & $\Delta v_{(t^*_3, t^*_4)}$ \\ \hline
+%0 to 5 & Maximum altitude (apogee) & $t^*_5$ & $z^*_5$ \\ \hline
+%0 to 6 & Speed at chute deployment & $t^*_6$ & $(\dot{x}^{*2}_6 + \dot{y}^{*2}_6 + \dot{z}^{*2}_6)^{1/2}$ \\ \hline
+%0 to 7 & Impact speed & $t^*_7$ & $(\dot{x}^{*2}_7 + \dot{y}^{*2}_7 + \dot{z}^{*2}_7)^{1/2}$ \\ \hline
+%0 to 7 & Distance to impact location & $t^*_7$ & $(x_7^{*2} + y_7^{*2})^{1/2}$
+%\end{tabu}}
+%\end{table}
+% NEW ENDING
+These values may finally be used in finding the state variables and flight parameters experienced by the vehicle occurring at the special times for which events outlined in \S\ref{Numerical Methods} take place. 
+%Very special event times and particular values are tabulated below, where the subscript $i$ denotes evaluating the value at the end of sequence $i$.
+%{\tabulinesep=1.0mm
+%\begin{longtable}[l]{l c c}
+%Event & Time $[\si{\s}]$ & Value $[\mathrm{SI}]$ \\
+%Launch rail departure & $t_1$ & $||\vec{r}||$ \\
+%
+%\end{longtable}}
+%%if $\mathbf{Y}$ denotes the collection of all computed variables and flight parameters obtained from the solution such that $\mathbf{Y}^*$ is this collection at a special event time $t^*$
+
+
+%Additional information about the trajectory may be found with the time history of $\vec{r}$, $\vec{v}$, and the times $t$ at which they were calculated, all obtained from the state $\mathbf{x}(t)$. The four angles $\phi, \theta, \phi', \text{ and } \theta'$ may be reconstructed from (\ref{theta'phi'})--(\ref{thetaphi}) and the angle $\psi$ is obtained by either using these angles (\ref{eq:psiAngles}) or simply $\vec{r},\vec{v}$ directly (\ref{eq:psirv}).
+%
+%Several more parameters of the flight are constructable after reobtaining the air density $\rho$ and temperature $T$ at altitude $z$ and time $t$ using a standard atmospheric model. To begin, the dynamic pressure (a component of the drag force), is 
+%\begin{equation}
+%q = \frac{1}{2}\rho v^2 \quad [\si{\Pa}].
+%\end{equation}
+%The dynamic pressure $q$ gives information about what the physical structure of the rocket is experiencing and whether it will be able to withstand the maximum value (max $q$) without breaking apart or not.
+%
+%The nondimensional Mach and Reynolds numbers can also be found. The speed of sound is
+%\begin{equation}
+%c = \sqrt{\gamma R T} \quad [\si{\m/\s}],
+%\end{equation}
+%where $\gamma = 1.4$ for air and $R = 287 \ \si{\J/\kg}$ is the gas constant for air. Then the Mach number is defined as
+%\begin{equation}
+%M = \frac{v}{c} \quad [\,]
+%\end{equation}
+%and the Reynolds number
+%\begin{equation}
+%\Re = \frac{\rho v L}{\mu} = \frac{v L}{\nu}\quad [\,],
+%\end{equation}
+%where the dynamic viscosity $\mu$ is related to kinematic viscosity $\nu$ by $\rho \mu = \nu$ and is strictly a function of temperature obeying Sutherland's law
+%\begin{equation}
+%\mu = \mu_0 \left(\frac{T}{T_0}\right)^{3/2} \frac{T_0 + 110.4}{T + 110.4} \quad [\si{\Pa \s}]
+%\end{equation}
+%where $\mu_0$ and $T_0$ is a reference viscosity and temperature respectively.
+
+\section{Solution Comparison}
+The solution $\mathbf{x}(t) = \begin{bmatrix}{\vec{r}}^{\,T}(t) & {\vec{v}}^{\,T}(t)\end{bmatrix}^T$ may be compared with others obtained from various trajectory programs, most notably \textsl{RasAero}, at any and every time $t$ to determine a general sense of accuracy and agreement with different models. The modes for comparison make use of relative difference and various function norm metrics.
+
+The metric of relative difference is useful in determining absolute quantities and thus works well in comparing particular values attained throughout the flight such as maximum Mach number, apogee altitude, time of flight, etc. If $x$ is such a comparable quantity from an accepted solution and $y$ the corresponding quantity generated by \texttt{rtraj}, where $x$ and $y$ are sufficiently far away from zero and understood by context to be not necessarily components of $\vec{r}$, then this metric is defined
+\begin{equation}
+d(x, y) = \frac{|x - y|}{\max(x,y)}.
+\end{equation}
+A relative difference, as opposed to a relative error, is considered as a metric since an error measures the residual with respect to a true and accepted answer. Each and every available model, however, is both unique and does not exactly match reality, so comparing solutions in the sense of error is of little meaning.
+
+The same metric in functional form is useful for measuring the relative difference between the two functions at every point in time. Similarly as before, if $\xi$ is a comparable function from an accepted solution and $\eta$ the corresponding function generated by \texttt{rtraj}, then the relative difference at each time $t$ is
+\begin{equation}
+\delta(\xi, \eta; t) = \frac{\abs{\xi(t) - \eta(t)}}{1 - \min(0, \min(\min\xi, \min\eta)) + \max(\xi(t), \eta(t))}.
+\end{equation}
+This function is chosen in such a way that $\delta(\xi, \eta; t) \leq |\xi(t) - \eta(t)|$ for all times $t$, so relative differences are bounded even when either $\xi$ or $\eta$ vanish nonsimultaneously. The effect of this boundedness is achieved via a positive vertical shift to both functions by an amount $1 - \min(0, \min(\min \xi, \min\eta)) = \mathrm{const.}$ at the cost of changing the relative scaling particularly between small numbers.
+
+The measurement of the accumulation of squared relative differences of the zeroth, first, and second orders to time $t$ against the maximum relative difference of unity to a reference time $\tau$ is then defined
+\begin{equation}
+\Psi(t; \tau) = \frac{1}{\tau}\int_0^t \abs{\delta(\xi, \eta; s)}^2 + |\delta(\dot{\xi}, \dot{\eta}; s)|^2 + |\delta(\ddot{\xi}, \ddot{\eta}; s)|^2 \dd{s}.
+\end{equation}
+As such, the relative difference accumulation may be interpreted several ways depending on the chosen reference time. A cumulative function norm parameterized by $\tau$ is further obtained as
+\begin{equation}
+\varsigma(t; \tau) = \sqrt{\Psi(t; \tau)}.
+\end{equation}
+Particular values of $\tau$ yield different measurements and meanings of this cumulative norm. Choosing $\tau = 1$ gives a naturally defined norm, but the relative differences are left unscaled and perhaps difficult to interpret. In contrast, the value $\tau = t$ gives a scaling to the total possible amount of accumulated relative difference until time $t$. This action has the effect of actively accounting for increases in measurement performance, thus giving ability to the norm to decrease. Using $\tau = t_1$ scales earlier relative difference accumulation to the total possible amount and may thus be interpreted as a sort of percentage of total accumulated relative difference.
+
+\end{document}

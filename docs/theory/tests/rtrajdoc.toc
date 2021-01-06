@@ -1,0 +1,22 @@
+\contentsline {chapter}{List of Symbols}{ii}
+\contentsline {section}{Matlab}{ii}
+\contentsline {section}{Theory}{iv}
+\contentsline {chapter}{\numberline {1.}User Guide}{1}
+\contentsline {section}{\numberline {1.1}Introduction and General Overview}{2}
+\contentsline {section}{\numberline {1.2}User Inputs}{2}
+\contentsline {subsection}{\numberline {1.2.1}Switches}{2}
+\contentsline {subsection}{\numberline {1.2.2}Vehicle and Launch Site Parameters}{3}
+\contentsline {section}{\numberline {1.3}Assumptions}{5}
+\contentsline {section}{\numberline {1.4}Warnings}{5}
+\contentsline {chapter}{\numberline {2.}Derivation}{7}
+\contentsline {section}{\numberline {2.1}Generalized Coordinates and Mappings}{8}
+\contentsline {section}{\numberline {2.2}Application To Rocket Motion}{9}
+\contentsline {section}{\numberline {2.3}Quantifying the Equations of Motion}{11}
+\contentsline {subsection}{\numberline {2.3.1}Initial Conditions}{11}
+\contentsline {section}{\numberline {2.4}Earth and Atmospheric Models}{13}
+\contentsline {section}{\numberline {2.5}Parachute Model}{16}
+\contentsline {chapter}{\numberline {3.}Analysis}{18}
+\contentsline {section}{\numberline {3.1}Solution Existence and Uniqueness}{19}
+\contentsline {section}{\numberline {3.2}Numerical Methods}{19}
+\contentsline {section}{\numberline {3.3}Data Acquisition}{20}
+\contentsline {section}{\numberline {3.4}Solution Comparison}{21}

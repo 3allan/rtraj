@@ -1,0 +1,165 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper, bindingoffset=0 in, left=0.95 in, right=0.95 in, top = 1 in, bottom=1 in, footskip=.25 in]{geometry} % Paper size
+\usepackage[utf8]{inputenc}       % Required for inputting international characters
+\usepackage[T1]{fontenc}          % Output font encoding for international characters
+\usepackage{amsmath}              % Math
+\usepackage{amssymb}              % Math
+%\usepackage{amsthm}               % Math - theorems
+\usepackage{esint}                % Math
+%\usepackage{physics}              % Math
+\usepackage{mathtools}
+\usepackage{tikz}
+\usepackage{pgfplots,tikz-3dplot}
+\usepackage{float}
+
+\pgfplotsset{compat=newest}
+\usetikzlibrary{arrows.meta, bending, calc, fadings, backgrounds, decorations.pathreplacing, decorations.pathmorphing, decorations.shapes, decorations.markings, shapes.geometric, shapes.misc, patterns}
+
+
+\begin{document}
+\section{Useful Backwards Recurrence Relations}
+\begin{equation} \label{eq:PnmBLR}
+P_n^m(x) = \frac{(n - m + 1)(n - m + 2)P_{n+1}^{m-1}(x) - (n + m - 1)(n + m)P_{n-1}^{m-1}(x)}{(2n + 1)\sqrt{1 - x^2}}
+\end{equation}
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    axis lines=middle,
+    xmin=-1.5, xmax=1.5,
+    ymin=-1.5, ymax=1.5,
+    xtick=\empty, ytick=\empty
+]
+\addplot [only marks] table {
+-1 -1
+-1  0
+-1  1
+ 0 -1
+ 0  0
+ 0  1
+ 1 -1
+ 1  0
+ 1  1
+};
+\addplot [domain=-1:0, samples=2, dashed, ->, >=latex, red, thick] {x} node[black, pos=0.1, below, yshift=-0.25cm]{$(n-1, m-1)$} node[black, pos=1.1, right, xshift=-0.25cm, yshift=1mm]{$(n,m)$};
+\addplot [domain=0:1, samples=2, dashed, <-, >=latex, red, thick] {-x} node[black, pos=1, below] {$(n+1, m-1)$};
+\end{axis}
+\end{tikzpicture}
+\caption{Legendre polynomial of degree $n$ and order $m$ recurrence relation defined by those at degree and order $(n\pm 1, m-1)$ as (\ref{eq:PnmBLR}).}
+\end{figure}
+
+
+\begin{equation} \label{eq:PnmLTB}
+P_n^m(x) = -\frac{\sqrt{1 - x^2}}{2m}\left(P_{n-1}^{m+1}(x) + (n + m - 1)(n + m)P_{n-1}^{m-1}(x)\right)
+\end{equation}
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    axis lines=middle,
+    xmin=-1.5, xmax=1.5,
+    ymin=-1.5, ymax=1.5,
+    xtick=\empty, ytick=\empty
+]
+\addplot [only marks] table {
+-1 -1
+-1  0
+-1  1
+ 0 -1
+ 0  0
+ 0  1
+ 1 -1
+ 1  0
+ 1  1
+};
+\addplot [domain=-1:0, samples=2, dashed, ->, >=latex, red, thick] {-x} node[black, pos=0, above]{$(n-1, m+1)$} node[black, pos=1, right, yshift=2.5mm]{$(n,m)$};
+\addplot [domain=-1:0, samples=2, dashed, ->, >=latex, red, thick] {x} node[black, pos=0, below] {$(n-1, m-1)$};
+\end{axis}
+\end{tikzpicture}
+\caption{Legendre polynomial of degree $n$ and order $m$ recurrence relation defined by those at degree and order $(n - 1, m\pm 1)$ as (\ref{eq:PnmLTB}).}
+\end{figure}
+
+\newpage
+\begin{equation} \label{eq:PnmOTB}
+2mx P_n^m(x) = -\sqrt{1 - x^2} \left(P_n^{m+1}(x) + (n + m)(n - m + 1)P_n^{m-1}(x)\right)
+\end{equation}
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    axis lines=middle,
+    xmin=-1.5, xmax=1.5,
+    ymin=-1.5, ymax=1.5,
+    xtick=\empty, ytick=\empty
+]
+\addplot [only marks] table {
+-1 -1
+-1  0
+-1  1
+ 0 -1
+ 0  0
+ 0  1
+ 1 -1
+ 1  0
+ 1  1
+};
+%\addplot [domain=-1:0, samples=2, dashed, ->, >=latex, red, thick] {-x} node[black, pos=0, above]{$(n-1, m+1)$} node[black, pos=1, right, yshift=2.5mm]{$(n,m)$};
+%\addplot [domain=-1:0, samples=2, dashed, ->, >=latex, red, thick] {x} node[black, pos=0, below] {$(n-1, m-1)$};
+\addplot [dashed, ->, >=latex, red, very thick] table {
+0 -1
+0  0
+}
+node [black, pos=0, right]{$(n, m-1)$} node [black, pos=1, right, yshift=3mm]{$(n, m)$};
+
+\addplot [dashed, ->, >=latex, red, very thick] table {
+0 1
+0 0
+}
+node [black, pos=0, right]{$(n, m+1)$};
+\end{axis}
+\end{tikzpicture}
+\caption{Legendre polynomial of degree $n$ and order $m$ recurrence relation defined by those at degree and order $(n, m\pm 1)$ as (\ref{eq:PnmOTB}).}
+\end{figure}
+
+
+\begin{equation} \label{eq:PnmLU}
+(n - m)x P_n^m(x) = \sqrt{1 - x^2} P_n^{m+1}(x) + (n + m)P_{n+1}^m(x)
+\end{equation}
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    axis lines=middle,
+    xmin=-1.5, xmax=1.5,
+    ymin=-1.5, ymax=1.5,
+    xtick=\empty, ytick=\empty
+]
+\addplot [only marks] table {
+-1 -1
+-1  0
+-1  1
+ 0 -1
+ 0  0
+ 0  1
+ 1 -1
+ 1  0
+ 1  1
+};
+%\addplot [domain=-1:0, samples=2, dashed, ->, >=latex, red, thick] {-x} node[black, pos=0, above]{$(n-1, m+1)$} node[black, pos=1, right, yshift=2.5mm]{$(n,m)$};
+%\addplot [domain=-1:0, samples=2, dashed, ->, >=latex, red, thick] {x} node[black, pos=0, below] {$(n-1, m-1)$};
+\addplot [dashed, ->, >=latex, red, very thick] table {
+-1  0
+ 0  0
+}
+node [black, pos=0, above]{$(n-1, m)$} node [black, pos=1, right, yshift=3mm]{$(n, m)$};
+
+\addplot [dashed, ->, >=latex, red, very thick] table {
+0 1
+0 0
+}
+node [black, pos=0, right]{$(n, m+1)$};
+\end{axis}
+\end{tikzpicture}
+\caption{Legendre polynomial of degree $n$ and order $m$ recurrence relation defined by those at degree and order $(n-1, m)$ and $(n, m+1)$ as (\ref{eq:PnmLU}).}
+\end{figure}
+\end{document}

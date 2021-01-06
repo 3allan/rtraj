@@ -1,0 +1,81 @@
+Ellipsoid (mostly Wikipedia) Links
+
+https://en.wikipedia.org/wiki/Reference_ellipsoid
+https://en.wikipedia.org/wiki/Geodetic_datum#From_ECEF_to_geodetic
+https://gssc.esa.int/navipedia/index.php/Ellipsoidal_and_Cartesian_Coordinates_Conversion
+ICRF ROTATION MATRIX (if wanted later) ----------> https://gssc.esa.int/navipedia/index.php/ICRF_to_CEP
+https://en.wikipedia.org/wiki/Ellipsoid
+https://en.wikipedia.org/wiki/Spheroid
+https://en.wikipedia.org/wiki/Latitude#Reduced_(or_parametric)_latitude
+https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_ECEF_to_ENU
+USEFUL ----------> http://ads.harvard.edu/books/1989fcm..book/Chapter2.pdf
+
+Spherical coordinates
+https://en.wikipedia.org/wiki/Spherical_coordinate_system
+
+Reference for rotation of axes (basis transform is same as coordinate transform)
+https://en.wikipedia.org/wiki/Rotation_of_axes
+
+Longitude 
+https://en.wikipedia.org/wiki/Longitude
+
+VERY USEFUL DOWNLOAD ---> file:///C:/Users/Matt/Downloads/NGA.STND.0036_1.0.0_WGS84.pdf
+https://en.wikipedia.org/wiki/Earth_ellipsoid
+https://en.wikipedia.org/wiki/International_Terrestrial_Reference_System_and_Frame
+https://earth-info.nga.mil/GandG/update/index.php?dir=wgs84&action=wgs84
+https://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/egm08_wgs84.html
+https://gisgeography.com/wgs84-world-geodetic-system/
+https://en.wikipedia.org/wiki/Theoretical_gravity
+https://en.wikipedia.org/wiki/Latitude
+https://en.wikipedia.org/wiki/Geodetic_Reference_System_1980
+https://en.wikipedia.org/wiki/World_Geodetic_System
+https://earth-info.nga.mil/GandG/update/index.php?dir=wgs84&action=wgs84#tab_wgs84-srv
+Useful ---> https://www.ngs.noaa.gov/GEOID/PRESENTATIONS/2007_02_24_CCPS/Roman_A_PLSC2007notes.pdf#:~:text=Plumb%20line%20%28over%20exaggerated%20in%20drawing%29%20-%20is,on%20the%20earth%E2%80%99s%20surface.%20We%20can%20make%20close
+https://en.wikipedia.org/wiki/Azimuth#:~:text=Normal-section%20azimuth%20is%20the%20angle%20measured%20at%20our,the%20spheroid%20from%20our%20viewpoint%20to%20Point%202.
+https://en.wikipedia.org/wiki/Physical_geodesy#:~:text=According%20to%20the%20famous%20Bruns%20formula%2C%20we%20have,Stokes%20published%20the%20following%20formula%20named%20after%20him%3A
+
+https://ai-solutions.com/_freeflyeruniversityguide/j2_perturbation.htm
+
+https://earth-info.nga.mil/GandG/publications/tr8350.2/wgs84fin.pdf
+https://earth-info.nga.mil/GandG/publications/tr8350.2/tr8350.2-a/Chapter%204.pdf#:~:text=4.3.1%20Average%20Value%20%28WGS%2084%20Ellipsoid%29%20A%20number,WGS%2084%20Ellipsoid%20is%20Y%20%3D%20979764.46561%20milligals.
+https://www.mathworks.com/help/aerotbx/ug/gravitysphericalharmonic.html
+https://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/README_FIRST.pdf
+
+
+https://en.wikipedia.org/wiki/Gas_constant
+https://en.wikipedia.org/wiki/Reference_atmospheric_model
+https://en.wikipedia.org/wiki/Jet_standard_atmosphere
+https://en.wikipedia.org/wiki/International_Standard_Atmosphere
+https://www.space.com/17683-earth-atmosphere.html
+https://en.wikipedia.org/wiki/Atmosphere
+https://en.wikipedia.org/wiki/Atmosphere_of_Earth
+https://www.engineeringtoolbox.com/individual-universal-gas-constant-d_588.html
+https://www.engineeringtoolbox.com/air-composition-d_212.html
+https://en.wikipedia.org/wiki/Speed_of_sound
+https://en.wikipedia.org/wiki/Heat_capacity_ratio
+https://en.wikipedia.org/wiki/Real_gas
+
+https://scied.ucar.edu/atmosphere-layers#:~:text=Layers%20of%20the%20atmosphere%3A%20troposphere%2C%20stratosphere%2C%20mesosphere%20and,named%20the%20troposphere%2C%20stratosphere%2C%20mesosphere%2C%20thermosphere%20and%20exosphere.
+https://www.nasa.gov/mission_pages/sunearth/science/atmosphere-layers2.html
+https://niwa.co.nz/education-and-training/schools/students/layers#:~:text=The%20atmosphere%20is%20comprised%20of%20layers%20based%20on,above%20the%20Earth%27s%20surface%20is%20called%20the%20exosphere.
+https://www.nasa.gov/mission_pages/sunearth/multimedia/magnetosphere.html
+https://maths.ucd.ie/met/msc/fezzik/Phys-Met/Ch03-Slides-2.pdf
+
+
+https://en.wikipedia.org/wiki/Upper-atmospheric_models
+https://en.wikipedia.org/wiki/Jet_standard_atmosphere
+https://en.wikipedia.org/wiki/U.S._Standard_Atmosphere
+https://en.wikipedia.org/wiki/International_Standard_Atmosphere
+https://en.wikipedia.org/wiki/Earth_radius
+
+https://math.wikia.org/wiki/Ellipsoidal_quadratic_mean_radius
+https://agupubs.onlinelibrary.wiley.com/doi/pdf/10.1002/swe.20064
+https://en.wikipedia.org/wiki/NRLMSISE-00
+https://www.mathworks.com/matlabcentral/fileexchange/56253-nrlmsise-00-atmosphere-model
+https://www.nrl.navy.mil/ssd/branches/7630/modeling-upper-atmosphere
+
+http://www.braeunig.us/space/atmmodel.htm
+http://www.braeunig.us/space/pdf/USSA1976.pdf
+http://www.braeunig.us/space/pdf/Atmosphere_0-90.pdf
+http://www.braeunig.us/space/pdf/Atmosphere_90-110.pdf
+http://jimhawley.ca/downloads/Ballistics/Formulae_and_code_US_Standard_Atmosphere_1976.pdf

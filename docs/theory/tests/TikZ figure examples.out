@@ -1,0 +1,55 @@
+\BOOKMARK [1][-]{section.1}{Preamble}{}% 1
+\BOOKMARK [1][-]{section.2}{Good}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Diagram of Unit Circle with Branch Cut on Positive Real Axis}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Diagram of Spherical Coordinates}{section.2}% 4
+\BOOKMARK [2][-]{subsection.2.3}{Comparing Perfect Circle with Rugged Ellipse}{section.2}% 5
+\BOOKMARK [2][-]{subsection.2.4}{Flattening a Circle into an Ellipse and Defining Its Parameters}{section.2}% 6
+\BOOKMARK [2][-]{subsection.2.5}{Circumscribing an Ellipse with a Circle \(Reduced Latitude\)}{section.2}% 7
+\BOOKMARK [2][-]{subsection.2.6}{Position Measured on an Ellipse \(Geocentric Latitude\)}{section.2}% 8
+\BOOKMARK [2][-]{subsection.2.7}{Comparing Geocentric Latitude to Reduced Latitude}{section.2}% 9
+\BOOKMARK [2][-]{subsection.2.8}{Plot of Geocentric Latitudes Varying with the Flattening}{section.2}% 10
+\BOOKMARK [2][-]{subsection.2.9}{Ellipsoidal Coordinates}{section.2}% 11
+\BOOKMARK [2][-]{subsection.2.10}{East-North-Vertical Coordinates}{section.2}% 12
+\BOOKMARK [2][-]{subsection.2.11}{Comparing Geocentric and Geodetic Latitudes Varying with the Flattening}{section.2}% 13
+\BOOKMARK [2][-]{subsection.2.12}{Comparing Perfect Ellipse with Rugged Ellipse}{section.2}% 14
+\BOOKMARK [2][-]{subsection.2.13}{Local Gravity Depiction \205 Height at Latitude is Not Exactly Aligned with Radius to the Earth's Center}{section.2}% 15
+\BOOKMARK [2][-]{subsection.2.14}{Comparing Ellipsoid to the Geoid to the Actual Topography of Earth's Surface}{section.2}% 16
+\BOOKMARK [2][-]{subsection.2.15}{Variation of Air's Ratio of Heat Capacity \(\) as a Function of Temperature}{section.2}% 17
+\BOOKMARK [2][-]{subsection.2.16}{Structural Overview of Rocket Body}{section.2}% 18
+\BOOKMARK [2][-]{subsection.2.17}{Solid Cone}{section.2}% 19
+\BOOKMARK [2][-]{subsection.2.18}{Conical Shell}{section.2}% 20
+\BOOKMARK [2][-]{subsection.2.19}{Parabolic Nose Cone}{section.2}% 21
+\BOOKMARK [2][-]{subsection.2.20}{Comparing Parabolic Cone to vK Ogive}{section.2}% 22
+\BOOKMARK [2][-]{subsection.2.21}{Elliptical Nose Cone}{section.2}% 23
+\BOOKMARK [2][-]{subsection.2.22}{Solid Cylinder}{section.2}% 24
+\BOOKMARK [2][-]{subsection.2.23}{Hollow Cylinder}{section.2}% 25
+\BOOKMARK [2][-]{subsection.2.24}{Hollow Frustum \(Angled Hollow Cylinder\)}{section.2}% 26
+\BOOKMARK [2][-]{subsection.2.25}{Propellant Within the Rocket Body}{section.2}% 27
+\BOOKMARK [2][-]{subsection.2.26}{Nozzle Flow Coordinates and Symbol Definitions}{section.2}% 28
+\BOOKMARK [2][-]{subsection.2.27}{Normal Shock in Nozzle}{section.2}% 29
+\BOOKMARK [2][-]{subsection.2.28}{Oblique Shock from Nozzle Lip}{section.2}% 30
+\BOOKMARK [2][-]{subsection.2.29}{Expansion Fan from Nozzle Lip}{section.2}% 31
+\BOOKMARK [2][-]{subsection.2.30}{Solid Cylinder of Propellant Grain}{section.2}% 32
+\BOOKMARK [2][-]{subsection.2.31}{Supersonic Conical Flow}{section.2}% 33
+\BOOKMARK [2][-]{subsection.2.32}{Rotated Coordinate Frames}{section.2}% 34
+\BOOKMARK [2][-]{subsection.2.33}{Fundamental Coordinate Rotations}{section.2}% 35
+\BOOKMARK [1][-]{section.3}{Bad}{}% 36
+\BOOKMARK [2][-]{subsection.3.1}{Diagram of J2000 Frame}{section.3}% 37
+\BOOKMARK [2][-]{subsection.3.2}{Comparing Geocentric and Geodetic Latitude Varying with Height from Surface of Ellipsoid}{section.3}% 38
+\BOOKMARK [2][-]{subsection.3.3}{Infinitesimal Element of Air to Derive Euler's Equation, Probably}{section.3}% 39
+\BOOKMARK [2][-]{subsection.3.4}{Colored Ellipsoid in r}{section.3}% 40
+\BOOKMARK [1][-]{section.4}{Terrible \(Graveyard\)}{}% 41
+\BOOKMARK [2][-]{subsection.4.1}{J2000 ECI and J2000 ECEF bases - the view is slightly scuffed just enough to matter and have to start over}{section.4}% 42
+\BOOKMARK [2][-]{subsection.4.2}{\(failure\) J2000 ECEF and SPHR bases - Couldn't figure out how to get 3d projections of both sphere and axes}{section.4}% 43
+\BOOKMARK [2][-]{subsection.4.3}{Physics vs Math SPHR coords. - Didn't like - settled on words}{section.4}% 44
+\BOOKMARK [2][-]{subsection.4.4}{Kind of failed attempt at 3D ellipse using pgfplots}{section.4}% 45
+\BOOKMARK [2][-]{subsection.4.5}{2D ellipse - didn't like it}{section.4}% 46
+\BOOKMARK [2][-]{subsection.4.6}{Playing around with pgfplots for 3D ellipse - too slow and not general enough}{section.4}% 47
+\BOOKMARK [2][-]{subsection.4.7}{Playing around with matlab2tikz}{section.4}% 48
+\BOOKMARK [2][-]{subsection.4.8}{Replaced this custom tikz with modified output from matlab2tikz}{section.4}% 49
+\BOOKMARK [2][-]{subsection.4.9}{Decided to put relation of geocentric/geodetic angle in instead - this plot doesn't tell really much}{section.4}% 50
+\BOOKMARK [2][-]{subsection.4.10}{This is what replaced the last one but this was taken out and its details were filled into a custom matlab2tikz axis settings made from before}{section.4}% 51
+\BOOKMARK [2][-]{subsection.4.11}{Subplots \(2,1\)}{section.4}% 52
+\BOOKMARK [2][-]{subsection.4.12}{Solid Cone}{section.4}% 53
+\BOOKMARK [2][-]{subsection.4.13}{Attempt at Trying to Plot Parabolic Nose Cone}{section.4}% 54
+\BOOKMARK [2][-]{subsection.4.14}{Skip here to bottom}{section.4}% 55
