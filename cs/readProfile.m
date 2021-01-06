@@ -1,4 +1,5 @@
-function [vehicle, stage, profile, func, flag, varargout] = readProfile(file)
+function [vehicle, stage, profile, func, flag_MonteCarlo, varargout] = ...
+    readProfile(file)
 % 
 % Matt Werner (m.werner@vt.edu) - Jan 3, 2021
 % 
@@ -137,6 +138,10 @@ function [vehicle, stage, profile, func, flag, varargout] = readProfile(file)
 % mark). Use regular UTF-8 (without a BOM) to avoid issues in the first
 % line of the file
 
+% SCRIPT - Provides some default values in case one is requested from the
+% input files (uncertainty is expected to be used)
+getDefaultValues
+
 % Open the file
 fid = fopen(file, 'r', 'n', 'UTF-8');
 
@@ -148,7 +153,7 @@ frewind(fid)
 
 % Set default flag to indicate that a Monte-Carlo simulation is not
 % requested
-flag = false;
+flag_MonteCarlo = false;
 
 % Get the number of lines in the file
 totalLineCount = getNumberOfLines(fid);
@@ -257,11 +262,7 @@ while (~isEndOfFile)
         % indicating whether a Monte-Carlo simulation is proper or not
         vals = strsplit(val, '?');
         numelVals = numel(vals);
-        % Replace an uncertainty of 0 with no uncertainty
-        if (numelVals == 2 && (strcmp(vals{2}, '0') || strcmp(vals{2}, '0%')))
-            % Remove the ? operator entirely
-            vals(:, 2) = [];
-        end
+        
         % Find which entries are empty
         emptyVals = cellfun(@isempty, vals);
         numelVals = numel(vals);
@@ -282,7 +283,7 @@ while (~isEndOfFile)
                     % Flag for Monte-Carlo is false by default
                 else
                     error("Feature not yet implemented")
-                    flag = true;
+                    flag_MonteCarlo = true;
                 end
             elseif (emptyVals(1) && ~emptyVals(2))
                 % egs '> X = ?1' (absolute uncertainty)
@@ -291,27 +292,22 @@ while (~isEndOfFile)
                 % (Monte-Carlo requested)
                 requestingRelativeUncertainty = strcmp(vals{2}(end), '%');
                 error("Feature not yet implemented")
-                flag = true;
+                flag_MonteCarlo = true;
             elseif (~emptyVals(1) && emptyVals(2))
-                % eg '> X = 1?'
+                % egs '> X = 1?'
+                %     '> X = 1??'
                 % Specified value given and requested default uncertainty
                 % (Monte-Carlo requested)
-                
-                % Get default relative uncertainty from file and convert it
-                % to absolute uncertainty
-                %
-                % Default value here
-                %
-                changeRelativeToAbsoluteUncertainty()
-                error("Feature not yet implemented")
-                flag = true;
+                vals{2} = strcat(num2str(DEFAULT.RELATIVE_UNCERTAINTY),'%');
+                VAL = computeAbsoluteUncertaintyFromChars(vals);
+                flag_MonteCarlo = true;
             else
                 % egs '> X = 2?1'
                 %     '> X = 2?1%' 
                 % Specified value given and specified uncertainty given
                 % (Monte-Carlo requested)
-                changeRelativeToAbsoluteUncertainty()
-                flag = true;
+                VAL = computeAbsoluteUncertaintyFromChars(vals);
+                flag_MonteCarlo = true;
             end
         else
             % Attempt to convert the values to numeric arrays - sometimes
@@ -319,6 +315,10 @@ while (~isEndOfFile)
             % take any action in the catch
             try
                 VAL = cellfun(@str2num, vals);
+                % Replace no uncertainty with an uncertainty of 0
+                if (numelVals == 1)
+                    VAL(1, 2) = 0;
+                end
             catch
                 % If the previous attempt to convert the values to numbers
                 % failed, then the input is meant to remain as a string,
@@ -333,11 +333,14 @@ while (~isEndOfFile)
             case "VEHICLE"
                 vehicle = VAL;
             case "STAGE"
-                stage = VAL;
+                % Accept only the first entry of VAL since stages have no
+                % uncertainty
+                stage = VAL(1, 1);
             case "PROFILE"
                 profile = VAL;
                 profileUnits = units;
             otherwise
+                
                 varargout{varargoutctr + 1} = VAL;
                 varargoutctr = varargoutctr + 1;
         end
@@ -346,7 +349,6 @@ while (~isEndOfFile)
         thisLine_timeAndFun = strsplit(thisLine, ',');
         func(ctr, :) = cellfun(@str2num, thisLine_timeAndFun);
     end
-    
     
     % Check if this line is the end of the file
     isEndOfFile = feof(fid);
@@ -363,26 +365,8 @@ if (providedProfile)
     % Convert units (time is assumed to be in seconds)
     func(:, 2) = convUnits(func(:, 2), profileUnits, "SI");
 else
-    func = "Profile unprovided";
+    func = "No profile";
 end
 
 % Close the file
 fclose(fid);
-
-%% Function
-function changeRelativeToAbsoluteUncertainty()
-    % Check if % is specified at the end of the input
-    requestingRelativeUncertainty = strcmp(vals{2}(end), '%');
-    if (requestingRelativeUncertainty)
-        % Override relative uncertainty with absolute
-        % uncertainty by first removing %, converting to
-        % arrays, and then performing the conversion to
-        % absolute uncertainty
-        vals{2} = vals{2}(1:end-1); % Remove %
-    end
-    VAL = cellfun(@str2num, vals); % Convert to numbers
-    if (requestingRelativeUncertainty)
-        VAL(2) = VAL(1)*VAL(2)/100; % Convert to abs.
-    end
-end
-end
