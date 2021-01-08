@@ -16,6 +16,10 @@ flags.load.gravityField = true;
 flags.load.magneticField = true;
 flags.load.terrain = true;
 
+% Check if the cache system should be used. If not, stop here; otherwise,
+% continue
+if (~flags.options.use.cache), return, end
+
 % Attempt to load previous inputs for the earth model into the workspace.
 % This process is justified because the load only occurs once per run of
 % rtraj.m and the resulting table contains few entries, so the load is fast

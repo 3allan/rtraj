@@ -40,3 +40,6 @@ else
     disp("Hitting terrain cache...")
     fprintf("Loaded terrain\n\n")
 end
+
+% Clear up workspace of temporary variables
+clear previous_earth_model
