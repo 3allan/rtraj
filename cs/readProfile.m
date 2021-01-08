@@ -306,7 +306,7 @@ while (~isEndOfFile)
                 %     '> X = 2?1%' 
                 % Specified value given and specified uncertainty given
                 % (Monte-Carlo requested)
-                VAL = computeAbsoluteUncertaintyFromChars(vals);
+                VAL = extractAbsoluteUncertaintyFromChars(vals);
                 flag_MonteCarlo = true;
             end
         else
@@ -340,7 +340,9 @@ while (~isEndOfFile)
                 profile = VAL;
                 profileUnits = units;
             otherwise
-                
+                % Convert VAL to standard SI units
+                if (isempty(units)), units = ""; end
+                VAL = convUnits(VAL', units, "SI");
                 varargout{varargoutctr + 1} = VAL;
                 varargoutctr = varargoutctr + 1;
         end

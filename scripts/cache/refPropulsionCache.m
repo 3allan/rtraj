@@ -6,25 +6,44 @@
 % 
 
 % Set default load behavior
-loadTheseFTProfiles = 1:numStages;
-loadTheseMFProfiles = 1:numStages;
-loadThesePCProfiles = 1:numStages;
+loadTheseProfiles.thrust = 1:numStages;
+loadTheseProfiles.massFlowRate = 1:numStages;
+loadTheseProfiles.burnDepth = 1:numStages;
+loadTheseProfiles.chamberPressure = 1:numStages;
 
 % Set default flags indicating that no cache currently exists and the
 % propulsion profiles determining motor/engine characteristics should be
-% loaded as if for the first time
+% loaded as if for the first time. Also set a flag indicating that a Monte
+% Carlo analysis should not be conducted
 % 
 % Make use of flag_rtraj_workspace_populated from Earth cache reference and
 % assume that the propulsion profiles exist as well
 flags.exists.previous.PropulsionCache = false;
-flags.load.ThrustProfile = true;
-flags.load.MassFlowRateProfile = true;
-flags.load.ChamberPressureProfile = true;
+flags.load.profiles.thrust = true;
+flags.load.profiles.massFlowRate = true;
+flags.load.profiles.chamberPressure = true;
+flags.load.profiles.burnDepth= true;
 
-% Document the last modified-by date for the profiles
-FTModDate = getModifiedByDate(FTprofile); % Thrust
-MFModDate = getModifiedByDate(MFprofile); % Mass flow rate
-PCModDate = getModifiedByDate(PCprofile); % Chamber pressure
+% Check if the cache system should be used. If not, stop here; otherwise,
+% continue
+if (~flags.options.use.cache), return, end
+
+% Document the last modified-by date for the profiles (each field on the
+% RHS is 2-by-1 before assignment)
+try
+    profiles.thrust.path(:, 2)  = getModifiedByDate(profiles.thrust.path(:, 1)); % Thrust
+    profiles.massFlowRate.path(:, 2)  = getModifiedByDate(profiles.massFlowRate.path(:, 1)); % Mass flow rate
+    profiles.burnDepth.path(:, 2)  = getModifiedByDate(profiles.burnDepth.path(:, 1)); % Burn Depth
+    profiles.chamberPressure.path(:, 2)  = getModifiedByDate(profiles.chamberPressure.path(:, 1)); % Chamber pressure
+catch error_gettingModifiedByDates
+    switch error_gettingModifiedByDates.identifier
+        case 'MATLAB:subsassigndimmismatch'
+            fprintf(2, "\nStaged data must align columnwise.\n")
+            rethrow(error_gettingModifiedByDates)
+        otherwise
+            rethrow(error_gettingModifiedByDates)
+    end
+end
 
 % Attempt to load previous file name for the propulsion model into the workspace.
 % This process is justified because the load only occurs once per run of
@@ -33,61 +52,78 @@ try
     % Obtain the path that points to where the propulsion cache is
     pathToCache = getPathToCache('previous_propulsion_profiles.mat');
     % Attempt to load the cache (may not exist)
-    previous_propulsion_profiles = load(pathToCache);
+    previous = load(pathToCache);
     flags.exists.previous.PropulsionCache = true;
-catch error_CacheMiss
+catch cacheMiss
     % Check possible causes for error
-    switch error_CacheMiss.identifier
+    switch cacheMiss.identifier
         case 'MATLAB:load:couldNotReadFile'
             % Create a new cache file since one currently doesn't exist and
             % carry on to load the propulsion profiles
-            save(pathToCache, 'FTprofile', 'FTModDate', ...
-                'MFprofile', 'MFModDate', 'PCprofile', 'PCModDate')
+            save(pathToCache, 'profiles')
         otherwise
-            rethrow(error_CacheMiss)
+            rethrow(cacheMiss)
     end
     return
 end
 
 % Already known if the workspace from a previous simulation still exists or
-% not. Assume that individual elements of the workspace were not deleted so
-% that the variables may be used again if the inputs didn't change
-
-
-
+% not from the Earth cache. Assume that individual elements of the workspace 
+% were not deleted so that the variables may be used again if the inputs
+% didn't change
 if (flags.exists.previous.rtrajWorkspace)
     % Determine which propulsion profiles need to be loaded/updated and which
     % may be reused from the previous simulation
     %
     % Check which, if any, thrust profiles differ from the previous
     % simulation
-    previous_FTprofile = previous_propulsion_profiles.FTprofile;
-    previous_FTModDate = previous_propulsion_profiles.FTModDate;
-    loadTheseFTProfiles = hasFileChanged(FTprofile, FTModDate, ...
-                                previous_FTprofile, previous_FTModDate);
-    clear previous_FTprofile previous_FTModDate
+    FTprofile = profiles.thrust.path(:, 1);
+    FTModDate = profiles.thrust.path(:, 2);
+    previous_FTprofile = previous.profiles.thrust.path(:, 1);
+    previous_FTModDate = previous.profiles.thrust.path(:, 2);
+    loadTheseProfiles.thrust = hasFileChanged(FTprofile, FTModDate, ...
+                                previous_FTprofile, previous_FTModDate)';
+    clear FTprofile FTModDate previous_FTprofile previous_FTModDate
+    %
     %
     % Check which, if any, mass flow rate profiles differ from the previous
     % simulation
-    previous_MFprofile = previous_propulsion_profiles.MFprofile;
-    previous_MFModDate = previous_propulsion_profiles.MFModDate;
-    loadTheseMFProfiles = hasFileChanged(MFprofile, MFModDate, ...
-                                previous_MFprofile, previous_MFModDate);
-    clear previous_MFprofile previous_MFModDate
+    MFprofile = profiles.massFlowRate.path(:, 1);
+    MFModDate = profiles.massFlowRate.path(:, 2);
+    previous_MFprofile = previous.profiles.massFlowRate.path(:, 1);
+    previous_MFModDate = previous.profiles.massFlowRate.path(:, 2);
+    loadTheseProfiles.massFlowRate = hasFileChanged(MFprofile, MFModDate, ...
+                                previous_MFprofile, previous_MFModDate)';
+    clear MFprofile MFModDate previous_MFprofile previous_MFModDate
+    %
+    %
+    % Check which, if any, burn depth profiles differ from the previous
+    % simulation
+    BDprofile = profiles.burnDepth.path(:, 1);
+    BDModDate = profiles.burnDepth.path(:, 2);
+    previous_BDprofile = previous.profiles.burnDepth.path(:, 1);
+    previous_BDModDate = previous.profiles.burnDepth.path(:, 2);
+    loadTheseProfiles.burnDepth = hasFileChanged(BDprofile, BDModDate, ...
+                                previous_BDprofile , previous_BDModDate)';
+    clear BDprofile BDModDate previous_BDprofile previous_BDModDate
+    %
     %
     % Check which, if any, chamber pressure profiles differ from the previous
     % simulation
-    previous_PCprofile = previous_propulsion_profiles.PCprofile;
-    previous_PCModDate = previous_propulsion_profiles.PCModDate;
-    loadThesePCProfiles = hasFileChanged(PCprofile, PCModDate, ...
-                                previous_PCprofile, previous_PCModDate);
+    PCprofile = profiles.chamberPressure.path(:, 1);
+    PCModDate = profiles.chamberPressure.path(:, 2);
+    previous_PCprofile = previous.profiles.chamberPressure.path(:, 1);
+    previous_PCModDate = previous.profiles.chamberPressure.path(:, 2);
+    loadTheseProfiles.chamberPressure = hasFileChanged(PCprofile, PCModDate, ...
+                                previous_PCprofile, previous_PCModDate)';
+    clear PCprofile PCModDate previous_PCprofile previous_PCModDate
 end
 
 % Adjust load flags according to any changes made in the files
-if (isempty(loadTheseFTProfiles)), flags.load.ThrustProfile = false; end
-if (isempty(loadTheseMFProfiles)), flags.load.MassFlowRateProfile = false; end
-if (isempty(loadThesePCProfiles)), flags.load.ChamberPressureProfile = false; end
+if (isempty(loadTheseProfiles.thrust)), flags.load.profiles.thrust = false; end
+if (isempty(loadTheseProfiles.massFlowRate)), flags.load.profiles.massFlowRate = false; end
+if (isempty(loadTheseProfiles.burnDepth)), flags.load.profiles.burnDepth = false; end
+if (isempty(loadTheseProfiles.chamberPressure)), flags.load.profiles.chamberPressure = false; end
 
 % Update the cache
-save(pathToCache, 'FTprofile', 'FTModDate', ...
-    'MFprofile', 'MFModDate', 'PCprofile', 'PCModDate')
+save(pathToCache, 'profiles')
