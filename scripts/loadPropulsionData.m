@@ -57,7 +57,7 @@ if (flags.exists.previous.rtrajWorkspace)
                 % Error results if the structure does not exist, which is
                 % possible if not using the cache (obviously). Therefore,
                 % define default behavior.
-                flags.simulate.MonteCarlo_each = false(numStages, 4);
+                flags.simulate.MonteCarlo_each = false(rocket.stages, 4);
             otherwise
                 rethrow(error_failedToLoadPreviousMonteCarloFlags)
         end
@@ -65,7 +65,7 @@ if (flags.exists.previous.rtrajWorkspace)
 else
     % Begin by default assuming that no profiles are to be used with a
     % Monte Carlo analysis
-    flags.simulate.MonteCarlo_each = false(numStages, 4);
+    flags.simulate.MonteCarlo_each = false(rocket.stages, 4);
 end
 %% Load thrust profile(s)
 if (flags.load.profiles.thrust)
@@ -335,4 +335,4 @@ if (flags.options.use.cache)
 end
 
 % Clear up workspace of temporary variables
-clear file pathToCache loadtmp previous
+clear file pathToCache loadtmp previous ii numelfields loadTheseProfiles

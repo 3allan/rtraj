@@ -1,3 +1,37 @@
+%% Test if algorithm for determining which profiles receive Monte Carlo treatment is correct
+A = randi(2, 2, 4)-1;
+B = randi(2, 2, 5)-1;
+C = B - A;
+
+idxNoDiffs = find(C == 0);
+C(idxNoDiffs) = C(idxNoDiffs) + A(idxNoDiffs);
+
+% Change all -1 values to 0 to indicate that the values are off for
+% this simulation
+C(C == -1) = 0;
+
+flag = any(C, [1,2]);
+
+
+%% Test string equivalence of some string arrays
+
+% Should pass
+testStr = ["aaaa", "aaaa", "aaaa", "aaaa"];
+checkStringEquivalence(testStr)
+
+% Should fail at position (1,2)
+% testStr = ["aaaa", "abaa", "aaaa", "aaaa"];
+% checkStringEquivalence(testStr)
+
+% Should fail at position (3,2)
+testStr = ["aaaa", "aaaa", "aaOa", "aaaa" 
+           "aaaa", "aaaa", "aaaa", "aaaa"
+           "aaaa", "aOaa", "aaaa", "aaaa"
+           "aaaa", "aaaa", "aOaa", "aaaa"
+           "aaaa", "aaaa", "aaaa", "aaaa"];
+checkStringEquivalence(testStr)
+
+
 %% Test if it's faster to check a condition than assign large variable
 tic
 if (1 > 2)

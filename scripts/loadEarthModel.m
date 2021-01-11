@@ -15,31 +15,55 @@ refEarthCache
 % 
 % Load ellipsoid parameters
 if (flags.load.ellipsoid)
-    [GM, Req, Rpo, f, e, w] = defineEllipsoidParameters(earthModel);
+    [earth.pars.GM, ...
+      earth.pars.Req, ...
+      earth.pars.Rpo, ...
+      earth.pars.f, ...
+      earth.pars.e, ...
+      earth.pars.w] = defineEllipsoidParameters(earth.model);
 end
 % Load the geopotential harmonic coefficients
 if (flags.load.gravityField)
-    [nG, mG, ~, Cnm, Snm, ~, ~] = loadGravitationalCoefficients(gravityDegree, gravityOrder, gravityModel);
-    [Cnm, Snm] = updateGravitationalCoefficients(JDLaunch, nG, mG, Cnm, Snm);
+    tmp_JD = time.launch.JulianDate;
+    [n, m, ~, Cnm, Snm, ~, ~] = ...
+        loadGravitationalCoefficients(earth.gravity.degree, ...
+                            earth.gravity.order, earth.gravity.model);
+    [Cnm, Snm] = updateGravitationalCoefficients(tmp_JD, n, m, Cnm, Snm);
+    clear tmp_JD
+    % Add degrees/orders and the coefficients to the earth structure and
+    % immediately remove them from the workspace
+    earth.gravity.coefficients.degrees = n; clear n
+    earth.gravity.coefficients.orders = m; clear m
+    earth.gravity.coefficients.cosine = Cnm; clear Cnm
+    earth.gravity.coefficients.sine = Snm; clear Snm
 else
     disp("Hitting gravity model cache...")
     fprintf("Loaded gravity model\n\n")
 end
 % Load the magnetic field potential harmonic coefficients
 if (flags.load.magneticField)
-    [nM, mM, gnm, hnm, dgnmdt, dhnmdt] = loadMagneticCoefficients(magneticDegree, magneticOrder);
-    [gnm, hnm] = updateMagneticCoefficients(JDLaunch, gnm, hnm, dgnmdt, dhnmdt);
+    tmp_JD = time.launch.JulianDate;
+    [n, m, gnm, hnm, dgnmdt, dhnmdt] = ...
+        loadMagneticCoefficients(earth.magnetic.degree, earth.magnetic.order);
+    [gnm, hnm] = updateMagneticCoefficients(tmp_JD, gnm, hnm, dgnmdt, dhnmdt);
+    clear tmp_JD dgnmdt dhnmdt
+    % Add degrees/orders and the coefficients to the magnetic structure and
+    % immediately remove them from the workspace
+    earth.magnetic.coefficients.degrees = n; clear n
+    earth.magnetic.coefficients.orders = m; clear m
+    earth.magnetic.coefficients.cosine = gnm; clear gnm
+    earth.magnetic.coefficients.sine = hnm; clear hnm
 else
     disp("Hitting magnetic model cache...")
     fprintf("Loaded magnetic model\n\n")
 end
 % Load the terrain
 if (flags.load.terrain)
-    [longitudes, geodeticLatitudes, WGS84ToGeoid, GeoidToTerrain, WGS84ToTerrain] = loadTerrain(terrainAngleUnits);
+    [earth.terrain.longitudes, earth.terrain.geodeticLatitudes, ...
+        earth.terrain.WGS84ToGeoid, earth.terrain.GeoidToTerrain, ...
+        earth.terrain.WGS84ToTerrain] ...
+        = loadTerrain(earth.terrain.angleUnits);
 else
     disp("Hitting terrain cache...")
     fprintf("Loaded terrain\n\n")
 end
-
-% Clear up workspace of temporary variables
-clear previous_earth_model

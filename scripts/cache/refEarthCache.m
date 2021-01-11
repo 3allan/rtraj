@@ -27,7 +27,7 @@ try
     % Obtain the path that points to where the earth cache is
     pathToCache = getPathToCache('previous_earth_model.mat');
     % Attempt to load the cache (may not exist)
-    previous_earth_model = load(pathToCache);
+    previousEarth = load(pathToCache);
     flags.exists.previous.EarthModelCache = true;
 catch error_CacheMiss
     % Check possible causes for error
@@ -37,9 +37,7 @@ catch error_CacheMiss
             flags.exists.previous.rtrajWorkspace = false;
             % Create a new cache file since one currently doesn't exist and
             % carry on to load the earth model
-            save(pathToCache, 'earthModel', 'gravityModel', 'gravityDegree', ...
-                'gravityOrder', 'magneticDegree', 'magneticOrder', ...
-                'terrainAngleUnits')
+            saveEarthInputsToCache
         otherwise
             rethrow(error_CacheMiss)
     end
@@ -47,46 +45,54 @@ catch error_CacheMiss
 end
 
 % Check if the models exist in the rtraj.m workspace. To avoid issues with
-% complexity and naming schemes, only check if the variable 'Req' exists
+% complexity and naming schemes, only check if the variable 'GM' exists
 % and assume the others haven't been deleted from the previous run (if
 % there was one). Therefore, assume that the other variables are there as
 % well if just one of them is there since they all load together
-if (evalin('base', '~exist("Req", "var")'))
+try
+    % Attempt to access the previous 'earth' structure's gravitational
+    % parameter, GM
+    earth.pars.GM; clear ans
+    % Assume that nothing has been deleted from it since the last run, so
+    % the previous workspace is functional as the cache itself
+    flags.exists.previous.rtrajWorkspace = true;
+catch
+    % Regardless of whatever problem that occured, assume that the entire
+    % workspace is gone. This way, the constituents of every model are
+    % loaded. Don't throw an error
     flags.exists.previous.rtrajWorkspace = false;
 end
 
-
-
+% Only load the models that have changed from the previous run, if there
+% was one
 if (flags.exists.previous.rtrajWorkspace)
     % Determine which models require loading/processing by comparing currently
     % requested model parameters to previous model parameters
     % 
     % Check if the requested ellipsoid is different from the one used in the
     % previous run
-    if (strcmp(earthModel, previous_earth_model.earthModel))
+    if (strcmp(earth.model, previousEarth.earthModel))
         flags.load.ellipsoid = false;
     end
-    % Check if the requested gravitational field is different from the one used
-    % in the previous run
-    if (gravityDegree == previous_earth_model.gravityDegree && ...
-            gravityOrder == previous_earth_model.gravityOrder && ...
-            gravityModel == previous_earth_model.gravityModel)
+    % Check if the requested gravitational field is different from the one
+    % used in the previous run
+    if (earth.gravity.degree == previousEarth.gravityDegree && ...
+            earth.gravity.order == previousEarth.gravityOrder && ...
+            strcmp(earth.gravity.model, previousEarth.gravityModel))
         flags.load.gravityField = false;
     end
     % Check if the requested magnetic field is different from the one used in
     % the previous run
-    if (magneticDegree == previous_earth_model.magneticDegree && ...
-            magneticOrder == previous_earth_model.magneticOrder)
+    if (earth.magnetic.degree == previousEarth.magneticDegree && ...
+            earth.magnetic.order == previousEarth.magneticOrder)
         flags.load.magneticField = false;
     end
     % Check if the requested angular units for the terrain are different from
     % the ones used in the previous run
-    if (strcmp(terrainAngleUnits, previous_earth_model.terrainAngleUnits))
+    if (strcmp(earth.terrain.angleUnits, previousEarth.terrainAngleUnits))
         flags.load.terrain = false;
     end
 end
 
 % Update the cache
-save(pathToCache, 'earthModel', 'gravityModel', 'gravityDegree', ...
-    'gravityOrder', 'magneticDegree', 'magneticOrder', ...
-    'terrainAngleUnits')
+saveEarthInputsToCache

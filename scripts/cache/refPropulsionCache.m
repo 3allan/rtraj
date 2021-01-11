@@ -6,10 +6,10 @@
 % 
 
 % Set default load behavior
-loadTheseProfiles.thrust = 1:numStages;
-loadTheseProfiles.massFlowRate = 1:numStages;
-loadTheseProfiles.burnDepth = 1:numStages;
-loadTheseProfiles.chamberPressure = 1:numStages;
+loadTheseProfiles.thrust = 1:rocket.stages;
+loadTheseProfiles.massFlowRate = 1:rocket.stages;
+loadTheseProfiles.burnDepth = 1:rocket.stages;
+loadTheseProfiles.chamberPressure = 1:rocket.stages;
 
 % Set default flags indicating that no cache currently exists and the
 % propulsion profiles determining motor/engine characteristics should be
@@ -31,10 +31,19 @@ if (~flags.options.use.cache), return, end
 % Document the last modified-by date for the profiles (each field on the
 % RHS is 2-by-1 before assignment)
 try
-    profiles.thrust.path(:, 2)  = getModifiedByDate(profiles.thrust.path(:, 1)); % Thrust
-    profiles.massFlowRate.path(:, 2)  = getModifiedByDate(profiles.massFlowRate.path(:, 1)); % Mass flow rate
-    profiles.burnDepth.path(:, 2)  = getModifiedByDate(profiles.burnDepth.path(:, 1)); % Burn Depth
-    profiles.chamberPressure.path(:, 2)  = getModifiedByDate(profiles.chamberPressure.path(:, 1)); % Chamber pressure
+    % Thrust
+    profiles.thrust.path(:, 2) = ...
+        getModifiedByDate(profiles.thrust.path(:, 1));
+    % Mass flow rate
+    profiles.massFlowRate.path(:, 2) = ...
+        getModifiedByDate(profiles.massFlowRate.path(:, 1)); 
+    % Burn Depth
+    profiles.burnDepth.path(:, 2) = ...
+        getModifiedByDate(profiles.burnDepth.path(:, 1));
+    % Chamber pressure
+    profiles.chamberPressure.path(:, 2) = ...
+        getModifiedByDate(profiles.chamberPressure.path(:, 1));
+    
 catch error_gettingModifiedByDates
     switch error_gettingModifiedByDates.identifier
         case 'MATLAB:subsassigndimmismatch'
@@ -54,15 +63,15 @@ try
     % Attempt to load the cache (may not exist)
     previous = load(pathToCache);
     flags.exists.previous.PropulsionCache = true;
-catch cacheMiss
+catch error_cacheMiss
     % Check possible causes for error
-    switch cacheMiss.identifier
+    switch error_cacheMiss.identifier
         case 'MATLAB:load:couldNotReadFile'
             % Create a new cache file since one currently doesn't exist and
             % carry on to load the propulsion profiles
             save(pathToCache, 'profiles')
         otherwise
-            rethrow(cacheMiss)
+            rethrow(error_cacheMiss)
     end
     return
 end
@@ -120,10 +129,18 @@ if (flags.exists.previous.rtrajWorkspace)
 end
 
 % Adjust load flags according to any changes made in the files
-if (isempty(loadTheseProfiles.thrust)), flags.load.profiles.thrust = false; end
-if (isempty(loadTheseProfiles.massFlowRate)), flags.load.profiles.massFlowRate = false; end
-if (isempty(loadTheseProfiles.burnDepth)), flags.load.profiles.burnDepth = false; end
-if (isempty(loadTheseProfiles.chamberPressure)), flags.load.profiles.chamberPressure = false; end
+if (isempty(loadTheseProfiles.thrust))
+    flags.load.profiles.thrust = false;
+end
+if (isempty(loadTheseProfiles.massFlowRate))
+    flags.load.profiles.massFlowRate = false;
+end
+if (isempty(loadTheseProfiles.burnDepth))
+    flags.load.profiles.burnDepth = false; 
+end
+if (isempty(loadTheseProfiles.chamberPressure))
+    flags.load.profiles.chamberPressure = false;
+end
 
 % Update the cache
 save(pathToCache, 'profiles')

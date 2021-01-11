@@ -1,127 +1,153 @@
 % One-time run script that calculates some additional parameters from the
 % inputs of rtraj
 
-%% Create flags
-flag_ProvidedMassFlowRate = 1; % User input includes nonlinear dmdt = f(t)
-flag_ProvidedChamberPressure = 1; % User input includes nonlinear pc = f(t)
-
 %% Staging
-stageNums = (1:numStages)';
+stageNums = (1:rocket.stages)';
 
 %% Propulsion
-% Define standard units to which the profiles must be converted
-FTProfileNewUnits = ["s", "N"];
-MFProfileNewUnits = ["s", "kg/s"];
-PCProfileNewUnits = ["s", "Pa"];
 
-% Correct thrust profile data from .csv file by removing excess data for
-% times indicated after the burn times according to "burnTimes" and then
-% ensure that the units are SI. Also ensure that the mass flow rate is
-% negative.
+% Extract the burn times from the thrust profiles
 for stage = stageNums'
-    % Adjust thrust profile (necessary)
-    FTProfile{stage}(FTProfile{stage}(:, 1) > burnTimes(stage, 1), :) = [];
-    FTProfile{stage} = convUnits(FTProfile{stage}, FTUnits{stage}, FTProfileNewUnits);
-    FTUnits{stage} = FTProfileNewUnits;
-    
-    % Adjust mass flow rate profile
-    if (~all(isnan(MFProfile{stage})))
-        MFProfile{stage}(MFProfile{stage}(:, 1) > burnTimes(stage, 1), :) = [];
-        MFProfile{stage} = convUnits(MFProfile{stage}, MFUnits{stage}, MFProfileNewUnits);
-        % Ensure that the mass flow rate is negative
-        MFProfile{stage}(:, 2) = -abs(MFProfile{stage}(:, 2));
-    else
-        % If not provided, then use linear variation
-        MFProfile{stage} = -massMotor(stage)/burnTimes(stage);
-        flag_ProvidedMassFlowRate = 0;
-    end
-    MFUnits{stage} = MFProfileNewUnits;
-    
-    % Create mass profile and prepare it to be pchipped
-    expelledMass = cumtrapz(MFProfile{stage}(:, 1), MFProfile{stage}(:, 2));
-    % Check that the final amount doesn't exceed the specified motor mass
-    excessMass = abs(expelledMass) - massMotor(stage);
-    if (excessMass > 0)
-        warning("Expelled mass exceeds indicated motor/fuel mass for stage $1.0f by %1.2f kg", stage, excessMass)
-    end
-    TMProfile{stage, 1} = [MFProfile{stage}(:, 1), massInit(stage) + expelledMass];
-    
-    % Adjust chamber pressure profile
-    if (~all(isnan(PCProfile{stage})))
-        PCProfile{stage}(PCProfile{stage}(:, 1) > burnTimes(stage, 1), :) = [];
-        PCProfile{stage} = convUnits(PCProfile{stage}, PCUnits{stage}, PCProfileNewUnits);
-        PCUnits{stage} = PCProfileNewUnits;
-    else
-        flag_ProvidedChamberPressure = 0;
-    end
+    % Explicitly place the burn times of the motors in with the thrust
+    % profile, where the first column indicates the nominal burn time and
+    % the second column indicates the (absolute) uncertainty
+    profiles.thrust.burnTimes(stage, :) = [profiles.thrust.func{stage}(end, 1), 0];
 end
-clear expelledMass
 
+% Units for propulsive characteristics are already SI and burn times are
+% assumed to be cut off when thrust reaches 0.
+% 
+% Objectives:
+%  1. Provide a (linear) mass flow rate if a mass flow rate profile wasn't
+%     explicitly given
+%  1.i. Ensure that the mass flow rate is negative
+%  2. Provide a (linear variation of) mass distribution if a burn depth
+%     profile wasn't explicitly given
+%  3. Indicate whether a chamber pressure profile was provided or not
+for stage = stageNums'
+    %% Mass Flow Rate Profile
+    % Ensure that the mass flow rate profile is negative
+    if (flags.exists.profile.massFlowRate(stage))
+        % Negate the provided mass flow rate profile
+        profiles.massFlowRate.func{stage}(:, 2) = ...
+            -abs(profiles.massFlowRate.func{stage}(:, 2));
+    else
+        % Temporary variables for brevity and clarity
+        tmp_tb = profiles.thrust.burnTimes(stage, 1);
+        tmp_m0 = massInit(stage);
+        tmp_massFlowRate = -tmp_m0/tmp_tb;
+        % Define the linear profile
+        profiles.massFlowRate.func{stage, :} = [  0,     tmp_massFlowRate
+                                                tmp_tb,  tmp_massFlowRate]; 
+    end
+    
+    %% Mass Profile
+    % Temporary variables for brevity and clarity
+    tmp_t = profiles.massFlowRate.func{stage}(:, 1);
+    tmp_f = profiles.massFlowRate.func{stage}(:, 2);
+    tmp_motorMass = profiles.thrust.motorMass(stage, 1);
+    % Create mass profile from mass flow rate profile and prepare it to be pchipped
+    tmp_expelledMass = -cumtrapz(tmp_t, tmp_f);
+    % Check that the final amount doesn't exceed the specified motor mass
+    tmp_excessMass = tmp_expelledMass(end) - tmp_motorMass;
+    if (tmp_excessMass > 0.001)
+        warning("Expelled mass exceeds indicated motor/fuel mass for stage %1.0f by %1.2f kg", stage, 0.001+tmp_excessMass)
+    end
+    % Define the mass profile
+    tmp_mass = massInit(stage) + tmp_expelledMass;
+    profiles.mass.func{stage, 1} = [tmp_t, tmp_mass];
+    profiles.mass.expelled{stage, 1} = tmp_expelledMass;
+    
+    %% Burn Depth Profile
+    % Nothing to do if the profile is provided, but if it's not provided,
+    % then make a linear variation varying from the rocket's centerline to
+    % its outer diameter0
+    if (~flags.exists.profile.burnDepth)
+        % Temporary variable for brevity and clarity
+        tmp_ID = diaOuter(stage); % Note: ID (inner diameter) used with OD (outer diameter)
+        profiles.burnDepth.func{stage, :} = [  0,         0 
+                                             tmp_tb,    tmp_ID];
+    end
+    
+    %% Chamber Pressure Profile
+    % Nothing to do since the flags regarding existence of a chamber
+    % pressure profile have already been determined
+    
+    %% Clean up temporary variables
+    clear clear tmp_* expelledMass
+end
+
+%% Area
 % Convert given diameters (easily measurable, but not used directly in the
 % process of obtaining the solution) to circular areas (not so easily
 % measurable, but used directly in the process of obtaining the solution)
-areaRefer = pi*diaOuter.^2/4; % Reference area for drag [m2]
-areaThrt  = pi*diaThroat.^2/4; % Area of the throat for propulsion [m2]
-areaExit  = pi*diaExit.^2/4; % Area of nozzle exit for adjusting thrust [m2]
-areaPara  = pi*diaFlatDM.^2/8; % Inflated parachute area for drag on descent [m2]
+area.reference = pi*diaOuter.^2/4; % Reference area for drag [m2]
+area.throat = pi*diaThroat.^2/4; % Area of the throat for propulsion [m2]
+area.exit = pi*diaExit.^2/4; % Area of nozzle exit for adjusting thrust [m2]
+area.parachute = pi*diaFlatDM.^2/8; % Inflated parachute area for drag on descent [m2]
 
-% Obtain (H)ermite (P)olynomial (C)oefficients (HPC) for fast interpolation of
-% the thrust curve, mass flow rate, and chamber pressure (if provided) per
-% stage ('pchip')
-% Key:
-% stage, 1 - Thrust profile (Always required, so it goes first)
-% stage, 2 - Mass flow rate (Optional, but still always there)
-% stage, 3 - Mass (Always there)
-% stage, 4 - Chamber pressure (NaN if no chamber pressure is indicated)
-HPC = cell(max(stageNums), 4);
+%% Interpolating Coefficients
+% Obtain (H)ermite (P)olynomial (C)oefficients (HPC) for fast interpolation
+% ('pchip') of the thrust, mass flow rate, burn depth, and chamber pressure
+% (if provided) per each stage.
 for stage = stageNums'
+    % Temporary variables for brevity and clarity
+    tmp_tthrust = profiles.thrust.func{stage}(:, 1);
+    tmp_fthrust = profiles.thrust.func{stage}(:, 2);
+    %
+    tmp_tmassFlowRate = profiles.massFlowRate.func{stage}(:, 1);
+    tmp_fmassFlowRate = profiles.massFlowRate.func{stage}(:, 2);
+    %
+    tmp_tmass = profiles.mass.func{stage}(:, 1);
+    tmp_fmass = profiles.mass.func{stage}(:, 2);
+    %
+    tmp_tburnDepth = profiles.burnDepth.func{stage}(:, 1);
+    tmp_fburnDepth = profiles.burnDepth.func{stage}(:, 2);
+        
     % Obtain (P)iecewise (C)ubic (H)ermite (I)nterpolating (P)olynomial
-    % (PCHIP) coefficients 
+    % (PCHIP) coefficients
     %
     % PCHIP the thrust profile
-    HPC{stage, 1} = pchip(FTProfile{stage}(:, 1), FTProfile{stage}(:, 2));
+    HPC.thrust{stage, 1} = pchip(tmp_tthrust, tmp_fthrust);
     %
     % PCHIP the mass flow rate
-    HPC{stage, 2} = pchip(MFProfile{stage}(:, 1), MFProfile{stage}(:, 2));
+    HPC.massFlowRate{stage, 1} = pchip(tmp_tmassFlowRate, tmp_fmassFlowRate);
     %
     % PCHIP the mass
-    HPC{stage, 3} = pchip(TMProfile{stage}(:, 1), TMProfile{stage}(:, 2));
+    HPC.mass{stage, 1} = pchip(tmp_tmass, tmp_fmass);
     %
-    % PCHIP the chamber pressure, if provided
-    if (flag_ProvidedChamberPressure)
-        HPC{stage, 4} = pchip(PCProfile{stage}(:, 1), PCProfile{stage}(:, 2));
-    else
-        % Otherwise, give it NaN so that attempting to interpolate upon
-        % HPC{..., 3} will result in a Matlab error with ppval
-        HPC{stage, 4} = NaN;
+    % PCHIP the chamber pressure, if possible
+    if (flags.exists.profile.chamberPressure)
+        HPC.chamberPressure{stage, 1} = pchip(tmp_tburnDepth, tmp_fburnDepth);
     end
+    
+    % Clean up temporary variables
+    clear tmp_*
 end
-% Rename for inserting into the table 'pars'
-FThpc = HPC(:, 1);
-MFhpc = HPC(:, 2);
-TMhpc = HPC(:, 3);
-PChpc = HPC(:, 4);
 
-% Precompute delays from launch regarding burn time
-retardedPropTime = NaN(numStages, 1);
+%% Precompute Delays From Launch Regarding Burn Time
+retardedPropTime = NaN(numStages, 2);
 for stage = stageNums'
     if (stage == 1)
         % No delays during ignition since t = 0 occurs at ignition
-        retardedPropTime(1, 1) = 0;
+        retardedPropTime(1, :) = zeros(1, 2);
     else
         % Provide a nonzero offset due to burntimes, separation delays, and
         % ignition delays of previous stages
-        retardedPropTime(stage, 1) = burnTimes(1, 1:stage-1) + delaySep(1, 1:stage-1) + delayIgn(1, 1:stage-1);
+        retardedPropTime(stage, :) = profiles.thrust.burnTimes(1:stage-1, :) + ...
+            delaySep(1:stage-1, :) + delayIgn(1:stage-1, :);
     end
 end
-
 
 %% Earth
 
 % Obtain local Earth parameters
 GPShLaunchsite = fastinterp2(longitudes, geodeticLatitudes, WGS84ToTerrain, LonLaunch, LatLaunch);
 MSLhLaunchsite = fastinterp2(longitudes, geodeticLatitudes, GeoidToTerrain, LonLaunch, LatLaunch);
-[ERA0, GMST0, LST0] = getRotAngsfromJDUT1(JDLaunch, deg2rad(LonLaunch));
+[launchsite.ERA.initial, launchsite.GMST.initial, launchsite.LST.initial] = ...
+    getRotAngsfromJDUT1(JDLaunch, deg2rad(LonLaunch));
+
+
 
 % Square the rate of angular rotation
 w2 = w^2;
@@ -275,5 +301,5 @@ pars.rotations.forw.singles = table(Teci_ecf_atLaunch, Tecf_env, Tenv_dcv, Tdcv_
 pars.rotations.forw.jumps = table(Tenv_rail);
 pars.rotations.back.jumps = table(Trail_env);
 % --- FLAGS ---
-pars.flags = table(flag_ProvidedMassFlowRate, flag_ProvidedChamberPressure);
+pars.flags = table(flags);
 % -----------------------------------------------------------------------
