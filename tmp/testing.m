@@ -1,3 +1,23 @@
+%% Test time it takes to calculate structural properties & see if they're correct
+% R = 1;
+% L = 5*R;
+% l = R/40;
+% k = 0.845;
+
+R = 0.0762;
+L = 0.762;
+l = 0.00254;
+k = 0.9;
+
+tic
+V = computeParabolicConeCenterOfMass(L, l, k)
+M = V*2700
+CoM = computeParabolicConeCenterOfMass(L, l, k)
+I = computeParabolicConeInertiaMatrix(R, L, l, k, M, CoM)
+toc
+
+% l = 0 matches solid cone
+
 %% Test if algorithm for determining which profiles receive Monte Carlo treatment is correct
 A = randi(2, 2, 4)-1;
 B = randi(2, 2, 5)-1;
