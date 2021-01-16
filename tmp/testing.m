@@ -1,3 +1,65 @@
+%% Test obtaining the nose cone properties (again, new function)
+clear, clc
+nosecone.OD = 2*0.0254*3;
+nosecone.length = 0.0254*30;
+nosecone.thickness = 0.0254*0.25;
+nosecone.k = 0;
+nosecone.density = 2700;
+nosecone.series = "haack";
+nosecone.thicknessType = "vertical";
+
+[M, CoM, IMoIatCoM, profile] = ...
+    computeNoseconeProperties(nosecone);
+
+x = profile(:, 1);
+outersurf = profile(:, 2);
+innersurf = profile(:, 3);
+
+plot(x, outersurf, 'b', x, -outersurf, 'b')
+hold on
+tmpinnersurf = innersurf;
+tmpinnersurf(innersurf == 0) = NaN;
+plot(x, tmpinnersurf, 'r', x, -tmpinnersurf, 'r')
+hold off
+axis equal
+
+X = [flip(x); x];
+Y = [flip(outersurf); -outersurf];
+YY = [flip(innersurf); -innersurf];
+fill(X, Y, 'b')
+hold on
+fill(X, YY, 'w')
+hold off
+axis equal
+
+
+%% Test cosine spacing
+clear, clc
+L=1;
+L=5;
+x = linspace(0, L, 10000);
+t = linspace(0, pi, 10000);
+xx = 0.5*L*(1 - cos(t));
+plot(x, xx)
+
+%% Test BOR properties and ensure they match well with results from below
+
+R = 0.0762;
+L = 0.762;
+l = L;
+k = 0;
+
+x = linspace(0, L, 500000)';
+f = R*(x/L) .* (2 - k*(x/L))/(2 - k);
+g = R*((x-l)/L) .* (2 - k*((x-l)/L))/(2 - k);
+g(x <= l) = 0;
+
+plot(x, f, x, g)
+
+[M, CoM, IMoIatCoM] = computeBORProperties(x, f, g, 2700)
+
+1;
+
 %% Test time it takes to calculate structural properties & see if they're correct
 % R = 1;
 % L = 5*R;
@@ -6,11 +68,11 @@
 
 R = 0.0762;
 L = 0.762;
-l = 0.00254;
-k = 0.9;
+l = L;
+k = 0;
 
 tic
-V = computeParabolicConeCenterOfMass(L, l, k)
+V = computeParabolicConeVolume(R, L, l, k)
 M = V*2700
 CoM = computeParabolicConeCenterOfMass(L, l, k)
 I = computeParabolicConeInertiaMatrix(R, L, l, k, M, CoM)
