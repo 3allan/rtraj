@@ -1,4 +1,5 @@
-function [M, CoM, IMoIatCoM, profile] = computeCylinderProperties(body)
+function [profile, M, CoM, IMoIatCoM] = ...
+    computeCylinderProperties(body, stage)
 % 
 % Matt Werner (m.werner@vt.edu) - Jan 16, 2021
 % 
@@ -71,6 +72,16 @@ function [M, CoM, IMoIatCoM, profile] = computeCylinderProperties(body)
 % 
 % ---------------------------------------------------------------
 % 
+%             stage - Indication as to which stage the frustum belongs. The
+%                     first stage (stage = 1) indicates the frustum that
+%                     mounts to the booster that initially fires and brings
+%                     the vehicle off of the launch rail. The final stage
+%                     indicates the frustum that mounts the nosecone to the
+%                     last sustainer stage (if such a frustum is
+%                     specified).
+%                     Size: 1-by-1 (scalar)
+%                     Units: - (unitless)
+% 
 %   Outputs:
 % 
 %                 M - The cylinder's total mass.
@@ -101,10 +112,10 @@ function [M, CoM, IMoIatCoM, profile] = computeCylinderProperties(body)
 % 
 
 % Unpack the body components
-outerRadius = body.OD/2;
-innerRadius = body.ID/2;
-length = body.length;
-density = body.density;
+outerRadius = body.OD(stage, 1)/2;
+innerRadius = body.ID(stage, 1)/2;
+length = body.length(stage, 1);
+density = body.density(stage, 1);
 
 %% General checks
 % Check that the cylinder is physical

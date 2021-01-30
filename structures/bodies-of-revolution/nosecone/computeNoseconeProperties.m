@@ -1,4 +1,4 @@
-function [M, CoM, IMoIatCoM, profile] = computeNoseconeProperties(nosecone)
+function [profile, M, CoM, IMoIatCoM] = computeNoseconeProperties(nosecone)
 % 
 % Matt Werner (m.werner@vt.edu) - Jan 15, 2021
 % 

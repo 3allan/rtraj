@@ -1,4 +1,5 @@
-function [M, CoM, IMoIatCoM, profile] = computeFrustumProperties(frustum)
+function [profile, M, CoM, IMoIatCoM] = ...
+    computeFrustumProperties(frustum, stage)
 % 
 % Matt Werner (m.werner@vt.edu) - Jan 16, 2021
 % 
@@ -119,6 +120,16 @@ function [M, CoM, IMoIatCoM, profile] = computeFrustumProperties(frustum)
 % 
 % ---------------------------------------------------------------
 % 
+%             stage - Indication as to which stage the frustum belongs. The
+%                     first stage (stage = 1) indicates the frustum that
+%                     mounts to the booster that initially fires and brings
+%                     the vehicle off of the launch rail. The final stage
+%                     indicates the frustum that mounts the nosecone to the
+%                     last sustainer stage (if such a frustum is
+%                     specified).
+%                     Size: 1-by-1 (scalar)
+%                     Units: - (unitless)
+% 
 %   Outputs:
 % 
 %                 M - The frustum's total mass.
@@ -149,19 +160,19 @@ function [M, CoM, IMoIatCoM, profile] = computeFrustumProperties(frustum)
 %                     Units: SI
 % 
 
-% Unpack the frustum
-frontRadius = frustum.frontOD/2;
-rearRadius = frustum.rearOD/2;
-length = frustum.length;
-thicknessType = frustum.thicknessType;
-thickness = frustum.thickness;
-density = frustum.density;
+% Unpack the frustum for this stage
+frontRadius = frustum.frontOD(stage, 1)/2;
+rearRadius = frustum.rearOD(stage, 1)/2;
+length = frustum.length(stage, 1);
+thicknessType = frustum.thicknessType(stage, 1);
+thickness = frustum.thickness(stage, 1);
+density = frustum.density(stage, 1);
 
 % Check if all values are 0 or NaN
 tmp_els = [frontRadius, rearRadius, length, thickness, density];
 if (all(tmp_els == 0) || all(isnan(tmp_els)))
-    % No frustum - return NaN for the outputs
-    [M, CoM, IMoIatCoM, profile] = deal(NaN);
+    % No frustum - return 0 for the outputs
+    [M, CoM, IMoIatCoM, profile] = deal(0);
     return
 end
 
