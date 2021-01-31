@@ -1,4 +1,4 @@
-function rocket = computeDryMassProperties(rocket)
+function rocket = computeDryProperties(rocket)
 % 
 % Matt Werner (m.werner@vt.edu) - Jan 14, 2021
 % 
@@ -14,7 +14,7 @@ function rocket = computeDryMassProperties(rocket)
 % The overall center of mass is obtained via the simple weighted sum
 % definition, but having all positions taken with respect to the tip of the
 % nosecone. Thus, components of the rocket are assumed to be ordered in the
-% following fashion: nosecone, frustum, body, frustum, body, frustum, ...
+% following fashion: nosecone, shoulder, cylinder, shoulder, cylinder, shoulder, ...
 % where the pattern repeats for as many stages as indicated.
 % 
 % Also calculate the moment of inertia matrix relative to this same
@@ -57,7 +57,7 @@ function rocket = computeDryMassProperties(rocket)
 %    Inputs:
 % 
 %            rocket - The input details of the rocket in standard SI units
-%                     concerning the nose cone (.nosecone), body (.body),
+%                     concerning the nose cone (.nosecone), cylinder (.cylinder),
 %                     etc. These parameters are used in determining the
 %                     rocket's structural properties (mass, center of mass,
 %                     and moment of inertia matrix).
@@ -83,31 +83,48 @@ Tbody_bor = getTransformationBOR2Body;
 [rocket.nosecone.profile, ...
     rocket.nosecone.mass, ...
     rocket.nosecone.CoM_bor, ...
-    rocket.nosecone.atCoM.IMoI_bor] ...
+    rocket.nosecone.IMoIatCoM_bor] ...
     = computeNoseconeProperties(rocket.nosecone);
 
-%% Frustum & body components
-% Cycle through each frustum and body piece starting from the last stage
+%% Shoulder & cylinder components
+% Cycle through each shoulder and cylinder piece starting from the last stage
 % (the pieces connected to the nosecone) to the first stage (the pieces
 % connected to the booster)
+tipToOrigin = [rocket.nosecone.length; 0; 0];
 for stage = rocket.stages:-1:1
-    % Find the structural properties of this stage's body
-    [rocket.body.profile{stage, 1}, ...
-        rocket.body.mass(stage, 1), ...
-        rocket.body.CoM_bor{stage, 1}, ...
-        rocket.body.atCoM.IMoI_bor{stage, 1}] ...
-        = computeCylinderProperties(rocket.body, stage);
+    % ----------------------- SHOULDER -----------------------
+    % Find the structural properties of this stage's shoulder
+    [rocket.shoulder.profile{stage, 1}, ...
+        rocket.shoulder.mass(stage, 1), ...
+        rocket.shoulder.CoM_bor{stage, 1}, ...
+        rocket.shoulder.IMoIatCoM_bor{stage, 1}] ...
+        = computeFrustumProperties(rocket.shoulder, stage);
     
-    % Find the structural properties of this stage's frustum
-    [rocket.frustum.profile{stage, 1}, ...
-        rocket.frustum.mass(stage, 1), ...
-        rocket.frustum.CoM_bor{stage, 1}, ...
-        rocket.frustum.atCoM.IMoI_bor{stage, 1}] ...
-        = computeFrustumProperties(rocket.frustum, stage);
+    % Find how far away the shoulder's center of mass is from the nosecone's
+    % tip & update the distance from the nosecone's tip to the shoulder's end
+    [tipToCoM, tipToOrigin] = ...
+        distanceFromNoseconeTip(tipToOrigin, ...
+        rocket.shoulder.CoM_bor{stage, 1}, rocket.shoulder.length(stage, 1));
+    rocket.shoulder.tipToCoM_bor{stage, 1} = tipToCoM;
+
+
+    % ----------------------- CYLINDER -----------------------
+    % Find the structural properties of this stage's casing
+    [rocket.cylinder.profile{stage, 1}, ...
+        rocket.cylinder.mass(stage, 1), ...
+        rocket.cylinder.CoM_bor{stage, 1}, ...
+        rocket.cylinder.IMoIatCoM_bor{stage, 1}] ...
+        = computeCylinderProperties(rocket.cylinder, stage);
+    
+    % Find how far away the cylinder's center of mass is from the nosecone's
+    % tip & update the distance from the nosecone's tip to the cylinder's end
+    [tipToCoM, tipToOrigin] = ...
+        distanceFromNoseconeTip(tipToOrigin, ...
+        rocket.cylinder.CoM_bor{stage, 1}, rocket.cylinder.length(stage, 1));
+    rocket.cylinder.tipToCoM_bor{stage, 1} = tipToCoM;
 end
 
-
-%% Total properties
+%% Total Properties
 % Find the location of every component's mass center with respect to the
 % nosecone's BOR coordinate system defined at the nose cone's tip with its
 % x-axis pointing pointing along the nosecone's longitudinal axis towards
@@ -115,83 +132,65 @@ end
 % the nosecone's centerline, so determining these positions occurs only on
 % the x-axis. Also calculate each component's mass moment of inertia matrix
 % with respect to the nosecone's BOR coordinate frame.
-pCurrent_bor = [rocket.nosecone.length; 0; 0];
+% 
+% Add components to the rigid body rocket and collect the DRY:
+% 1) mass
+% 2) mass center
+% 3) mass moment of inertia matrix,
+% where the center of mass and mass moment of inertia matrix are computed
+% relative to the nosecone's BOR frame.
+% 
+% Begin with the nosecone, which may or may not be the final staged piece.
+% Regardless, count it is the final staged piece of equipment since it
+% always persists (the payload is fitted into the nosecone)
+rocket.dry.mass(1+rocket.stages, 1) = rocket.nosecone.mass;
+rocket.dry.CoMatTip_bor{1+rocket.stages, 1} = rocket.nosecone.CoM_bor;
+rocket.dry.IMoIatTip_bor{1+rocket.stages, 1} = ...
+    translateIMoIatCoMToP(rocket.nosecone.mass, ...
+                          rocket.nosecone.CoM_bor, ...
+                          rocket.nosecone.IMoIatCoM_bor);
+
+% Repeat the process, but now for components that aren't the nosecone
 for stage = rocket.stages:-1:1
-    % Every stage is paired with a frustum and body, so both may be
-    % evaluated within this stage
-    %
-    % Find how far away this frustum's center of mass is from the nosecone
-    % tip
-    CoM_bor = pCurrent_bor + rocket.frustum.CoM_bor{stage, 1};
-    rocket.frustum.atTip.CoM_bor{stage, 1} = CoM_bor;
-    % Translate this frustum's mass moment of inertia matrix to the
-    % nosecone tip
-    rocket.frustum.atTip.IMoI_bor{stage, 1} = ...
-        rocket.frustum.atCoM.IMoI_bor{stage, 1} + ...
-        rocket.frustum.mass(stage, 1) * (CoM_bor'*CoM_bor*eye(3) - ...
-                                         CoM_bor*CoM_bor');
-    % Update the current position from the nosecone's tip by the frustum's
-    % length to get to the body's coordinate origin
-    pCurrent_bor = pCurrent_bor + [rocket.frustum.length(stage, 1); 0; 0];
-    % Find how far away this cylinder/body's center of mass is from the
-    % nosecone tip
-    rocket.body.atTip.CoM_bor{stage, 1} = ...
-        pCurrent_bor + rocket.body.CoM_bor{stage, 1};
-    % Update the current position from from the nosecone's tip by the
-    % cylinder/body's length to get to the next frustum's coordinate origin
-    pCurrent_bor = pCurrent_bor + [rocket.body.length(stage, 1); 0; 0];
+    % Get quick reference to the stage that comes after this stage (to be
+    % used for obtaining properties of the next stage that have already
+    % been calculated)
+    nextStage = stage + 1;
+    
+    % Add components' masses to this stage
+    newMass(1, 1) = rocket.shoulder.mass(stage, 1);
+    newMass(1, 2) = rocket.cylinder.mass(stage, 1);
+    % Add components' centers of mass to this stage
+    newCoMs(:, 1) = rocket.shoulder.tipToCoM_bor{stage, 1};
+    newCoMs(:, 2) = rocket.cylinder.tipToCoM_bor{stage, 1};
+    % Add components' translated mass moments of inertia matrix to the
+    % nosecone's tip
+    newIMoIs(:, 1:3) = translateIMoIatCoMToP(newMass(1,1), newCoMs(:,1), rocket.shoulder.IMoIatCoM_bor{stage, 1});
+	newIMoIs(:, 4:6) = translateIMoIatCoMToP(newMass(1,2), newCoMs(:,2), rocket.cylinder.IMoIatCoM_bor{stage, 1});
+                          
+	% Attach these components to the rocket and calculate the structural
+	% properties
+    [totalMass, totalCoMatTip_bor, totalIMoIatTip_bor] = ...
+        attachComponents(rocket.dry.mass(nextStage, 1), ...
+                         rocket.dry.CoMatTip_bor{nextStage, 1}, ...
+                         rocket.dry.IMoIatTip_bor{nextStage, 1}, ...
+                         newMass, newCoMs, newIMoIs);
+                     
+	% Add the new structural properties to the rocket's properties
+    rocket.dry.mass(stage, 1) = totalMass;
+    rocket.dry.CoMatTip_bor{stage, 1} = totalCoMatTip_bor;
+    rocket.dry.IMoIatTip_bor{stage, 1} = totalIMoIatTip_bor;
 end
 
-% Prepare for iterative procedure for finding the total mass, center of
-% mass, and mass moment of inertia of the dry rocket
-nextStageMass = rocket.nosecone.mass;
-nextStageCoM_bor = rocket.nosecone.CoM_bor;
-nextStagesumMassCoM_bor = nextStageMass*nextStageCoM_bor;
-
-% Add these preparations as the final stage in case the nosecone is
-% requested to separate from the final firing stage
-rocket.dry.mass(rocket.stages+1, 1) = nextStageMass;
-rocket.dry.CoM_bor{rocket.stages+1, 1} = nextStageCoM_bor;
-
-% Assemble all pieces together and find the dry-mass, dry center of mass,
-% and the dry mass moment of inertia for each stage of the vehicle
-for stage = rocket.stages:-1:1
-    %% Total mass
-    % Addition of mass due to this interstage and casing
-    massOfThisInterstage = rocket.frustum.mass(stage, 1);
-    massOfThisCasing = rocket.body.mass(stage, 1);
-    % Total mass of this stage
-    massOfThisStage = nextStageMass + ...
-        massOfThisInterstage + ...
-        massOfThisCasing;
-    % Mark the total mass of this stage as an official calculated value
-    % for the entire rocket
-    rocket.dry.mass(stage, 1) = massOfThisStage;
-    
-    %% Total center of mass
-    % Weighted sum of masses and centers of mass for this interstage and
-    % casing relative to the nosecone's BOR coordinate frame
-    CoMofThisInterstage = rocket.frustum.atTip.CoM_bor{stage, 1};
-    CoMofThisCasing = rocket.body.atTip.CoM_bor{stage, 1};
-    sumMCoMofThisStage = nextStagesumMassCoM_bor + ...
-        massOfThisInterstage*CoMofThisInterstage + ...
-        massOfThisCasing*CoMofThisCasing;
-    % Compute the position of the center of mass for this stage relative to
-    % the nosecone BOR coordinate frame
-    CoMofThisStage = sumMCoMofThisStage/massOfThisStage;
-    % Mark the position of the center of mass as an official calculated
-    % value for the entire rocket
-    rocket.dry.CoM_bor{stage, 1} = CoMofThisStage;
-    
-    %% Total mass moment of inertia (@nosecone tip, BOR frame)
-    
-    
-    %% Update next values
-    % Update the next stage mass
-    nextStageMass = massOfThisStage;
-    % Update the next stage center of mass
-    nextStagesumMassCoM_bor = sumMCoMofThisStage;
+% Transform the mass moment of inertia matrices from the BOR frame to the
+% body-fixed principal frame. The transformation follows the form 
+%                               I_t = T*I*T'
+% since the mass moment of inertia matrix, I, is actually a tensor. The
+% quantity I_t represents the same tensor as I but simply expressed in a
+% different frame whose transformation is described by the rotation matrix
+% T.
+for stage = 1:rocket.stages+1
+    rocket.dry.CoMatTip_body{stage, 1} = Tbody_bor*rocket.dry.CoMatTip_bor{stage, 1};
+    rocket.dry.IMoIatTip_body{stage, 1} = transformTensor(Tbody_bor, rocket.dry.IMoIatTip_bor{stage, 1});
+    rocket.dry.IMoIatTip_body{stage, 1} = Tbody_bor*rocket.dry.IMoIatTip_bor{stage, 1}*Tbody_bor';
 end
-
-
-%% Compute the total dry mass of the vehicle

@@ -107,4 +107,4 @@ IMoIatOrigin = diag(trapz(x, MPUL .* [B, C, C] / 2));
 % the f and g functions but simply shifted over to have its origin located
 % at the BOR's center of mass. This transformation is achieved via the 3D
 % parallel axis theorem
-IMoIatCoM = IMoIatOrigin - M*(CoM'*CoM*eye(3) - CoM*CoM');
+IMoIatCoM = translateIMoIatPToCoM(M, CoM, IMoIatOrigin);
