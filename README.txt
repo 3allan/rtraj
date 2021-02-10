@@ -85,9 +85,17 @@ information regarding the chamber pressure inside of the nozzle, which is not
 required. Providing the chamber pressure profile yields extra information
 about the gas flow in the nozzle.
 
-% ------------------------------------------------------------
+% -------------------------------------------------------------------------
 ASSUMPTIONS (not yet an exhaustive list)
-1. ...
-% ------------------------------------------------------------
+- The casings are completely cylindrical with no curvature
+- There are no boattails
+- The motor fills out the cylinder completely to its inner-diameter
+- The surrounding air is motionless (no wind)
+- No shockwaves occur on the interior of any nozzle
+- All shockwaves acting on the vehicle's exterior are attached (weak)
+- The angle of attack is small
+- The vehicle is stable
+- The propellant has a constant density
+% -------------------------------------------------------------------------
 
-Matt Werner (m.werner@vt.edu) - Dec 22, 2020
+Matt Werner (m.werner@vt.edu) - Feb 10, 2021
