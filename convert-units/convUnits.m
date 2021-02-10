@@ -381,9 +381,9 @@ for ii = 1:numUnitConvs
     
     %% Force
     switch currentUnit
-        case {"newton", "newtons", "n", "si"}
+        case {"newton", "newtons", "n"}
             switch desiredUnit
-                case {"newton", "newtons", "n"}
+                case {"newton", "newtons", "n", "si"}
                     unitmult(ii) = 1;
                 case {"pound", "pounds", "lb", "lbf"}
                     unitmult(ii) = 0.224809;
@@ -399,6 +399,23 @@ for ii = 1:numUnitConvs
     
     %% Energy
     
+    %% Pressure
+    switch currentUnit
+        case {"pascal", "pascals", "pa"}
+            switch desiredUnit
+                case {"pascal", "pascals", "pa", "si"}
+                    unitmult(ii) = 1;
+                case {"absolute psi", "psia"}
+                    unitmult(ii) = 0.00014503773800721815;
+            end
+        case {"absolute psi", "psia"}
+            switch desiredUnit
+                case {"pascal", "pascals", "pa", "si"}
+                    unitmult(ii) = 6894.75728;
+                case {"absolute psi", "psia"}
+                    unitmult(ii) = 1;
+            end
+    end
 end
 
 % Convert units by performing column-wise elemental multiplication, as in
