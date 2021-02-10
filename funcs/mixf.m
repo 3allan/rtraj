@@ -20,7 +20,7 @@ function mixedf = mixf(x, f)
 %                     (f1). If x is unity otherwise, then the mixed
 %                     quantity is fully mixed and correspondingly returns
 %                     the fully mixed value (f2).
-%                     Size: n-by-1 (string)
+%                     Size: n-by-1 (vector)
 %                     Units: - (N/A)
 % 
 %                 f - Quantity to mix between the limiting values it
@@ -30,7 +30,7 @@ function mixedf = mixf(x, f)
 %                     mixed (changed) quantity. These two values only need
 %                     be real - they may be identical, though in this case,
 %                     no mixing occurs.
-%                     Size: n-by-2 (string)
+%                     Size: n-by-2 (matrix)
 %                     Units: ?
 % 
 
@@ -46,5 +46,5 @@ end
 % Calculate the mixed f
 f1 = f(:, 1);
 f2 = f(:, 2);
-mixedf = x*f2 + (1 - x)*f1;
+mixedf = x.*f2 + (1 - x).*f1;
 
