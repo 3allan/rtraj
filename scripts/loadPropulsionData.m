@@ -22,9 +22,6 @@ refPropulsionCache
 % Only load the propulsion profiles that are either not currently stored in
 % the rtraj.m workspace or have changed from the previous simulation
 
-% Reset profile vehicle name
-profiles.vehicle = "";
-
 % Start a flag to indicate whether a Monte Carlo analysis is requested
 % according to the inputs (a Monte Carlo analysis is requested if at least
 % 1 input uses the ? operator with some specification of uncertainty)
@@ -68,65 +65,49 @@ else
     flags.simulate.MonteCarlo_each = false(rocket.stages, 4);
 end
 %% Load thrust profile(s)
+
 if (flags.load.profiles.thrust)
     disp("Loading thrust profile...")
     % Create temporary variable for brevity
-    loadtmp = loadTheseProfiles.thrust;
+    tmp_load = loadTheseProfiles.thrust;
     % Define thrust profile structure
-    profiles.thrust.vehicle(loadtmp, 1) = "";
-    profiles.thrust.profile(loadtmp, 1) = "";
-    profiles.thrust.stage(loadtmp, 1) = NaN;
-    profiles.thrust.func(loadtmp, 1) = {NaN};
-    profiles.thrust.ambientPressureAtTest(loadtmp, [1,2]) = NaN;
-    profiles.thrust.motorMass(loadtmp, [1,2]) = NaN;
-    profiles.thrust.Yexhaust(loadtmp, [1,2]) = NaN;
+    rocket.motor.profiles.thrust.name(tmp_load, 1) = "";
+    rocket.motor.profiles.thrust.curve(tmp_load, 1) = {NaN};
+    rocket.motor.profiles.thrust.ambientPressure(tmp_load, 1:2) = NaN;
     
     % Read each necessary file
-    for ii = loadTheseProfiles.thrust
+    for stage = loadTheseProfiles.thrust
         % Define the current profile
-        file = profiles.thrust.path(ii, 1);
+        file = rocket.motor.files.thrust(stage, 1);
         % Read the file
-        [ ...
-            profiles.thrust.vehicle(ii, 1), ...
-            profiles.thrust.stage(ii, 1), ...
-            profiles.thrust.profile(ii, 1), ...
-            profiles.thrust.func{ii, 1}, ...
-            flags.simulate.MonteCarlo_each(ii, 1), ...
-            profiles.thrust.motorMass(ii, :), ...
-            profiles.thrust.Yexhaust(ii, :), ...
-            profiles.thrust.ambientPressureAtTest(ii, :) ...
-            ] ...
+        [rocket.motor.profiles.thrust.name(stage, 1), ...
+         rocket.motor.profiles.thrust.curve{stage, 1}, ...
+         flags.simulate.MonteCarlo_each(stage, 1), ...
+         rocket.motor.profiles.thrust.ambientPressure(stage, :)] ...
             = readProfile(file);
-        % Perform some basic checks on this stage's thrust profile
-        checkProfile(profiles.thrust, "THRUST", ii, file)
+        
+        % Leave errors to Matlab regarding well-orderedness of the time
+        % column
     end
 else
     disp("Hitting thrust profile cache...")
 end
 fprintf("Loaded thrust profile\n\n")
 
-% Check thrust profile for consistency between vehicle and profile names
-% and if all equal, reassign the vehicle and profile fields to be a single
-% string
-checkProfile(profiles.thrust)
-profiles.thrust.vehicle = profiles.thrust.vehicle(1);
-profiles.thrust.profile = profiles.thrust.profile(1);
-
 %% Obtain mass flow rate profile(s)
+
 if (flags.load.profiles.massFlowRate)
     disp("Loading mass flow rate profile...")
     % Create temporary variable for brevity
-    loadtmp = loadTheseProfiles.massFlowRate;
+    tmp_load = loadTheseProfiles.massFlowRate;
     % Define structure
-    profiles.massFlowRate.vehicle(loadtmp, 1) = "";
-    profiles.massFlowRate.profile(loadtmp, 1) = "";
-    profiles.massFlowRate.stage(loadtmp, 1) = NaN;
-    profiles.massFlowRate.func(loadtmp, 1) = {NaN};
+    rocket.motor.profiles.massFlowRate.name(tmp_load, 1) = "";
+    rocket.motor.profiles.massFlowRate.curve(tmp_load, 1) = {NaN};
     
     % Read each necessary file
-    for ii = loadTheseProfiles.massFlowRate
+    for stage = loadTheseProfiles.massFlowRate
         % Define the current profile
-        file = profiles.massFlowRate.path(ii, 1);
+        file = rocket.motor.files.massFlowRate(stage, 1);
         
         % Determine if the file name was empty (ie not provided) so that
         % rtraj can know if it needs to use a more simplified (linear)
@@ -137,31 +118,25 @@ if (flags.load.profiles.massFlowRate)
             % assumed to vary LINEARLY from the stage's initial mass to the
             % stage's final mass, where the final mass is simply this
             % stage's initial mass less this stage's motor mass.
-            flags.exists.profile.massFlowRate(ii, 1) = false;
+            flags.exists.profile.massFlowRate(stage, 1) = false;
         else
             % Don't define behavior if the file is spelled incorrectly such
             % that Matlab can't read it - leave those errors to Matlab
             %
             % Read the file
-            [ ...
-                profiles.massFlowRate.vehicle(ii, 1), ...
-                profiles.massFlowRate.stage(ii, 1), ...
-                profiles.massFlowRate.profile(ii, 1), ...
-                profiles.massFlowRate.func{ii, 1}, ...
-                flags.simulate.MonteCarlo_each(ii, 2) ...
-                ] ...
+            [rocket.motor.profiles.massFlowRate.name(stage, 1), ...
+             rocket.motor.profiles.massFlowRate.curve{stage, 1}] ...
                 = readProfile(file);
-            % Perform some basic checks on this stage's mass flow rate profile
-            checkProfile(profiles.massFlowRate, "MASS-FLOW-RATE", ii, file)
             
-            % Check if a CSV profile was defined by seeing if the func is
-            % still NaN. If so, then don't do the analysis
-            if (any(isnan(profiles.massFlowRate.func{ii, 1}), [1, 2]))
-                flags.exists.profile.massFlowRate(ii, 1) = false;
+            % Determine if a CSV profile was provided by checking the
+            % values of the profile. If they're still NaN, then perform a
+            % linear treatment of the mass flow rate.
+            if (any(isnan(rocket.motor.profiles.massFlowRate.curve{stage, 1}), [1, 2]))
+                flags.exists.profile.massFlowRate(stage, 1) = false;
             else
                 % Mark that the mass flow rate profile (for this stage)
                 % exists
-                flags.exists.profile.massFlowRate(ii, 1) = true;
+                flags.exists.profile.massFlowRate(stage, 1) = true;
             end
         end
     end
@@ -170,28 +145,20 @@ else
 end
 fprintf("Loaded mass flow rate profile\n\n")
 
-% Check mass flow rate profile for consistency between vehicle and profile
-% names and, if all equal, reassign the vehicle and profile fields to be a
-% single string
-checkProfile(profiles.massFlowRate)
-profiles.massFlowRate.vehicle = profiles.massFlowRate.vehicle(1);
-profiles.massFlowRate.profile = profiles.massFlowRate.profile(1);
-
 %% Obtain burn depth profile(s)
+
 if (flags.load.profiles.burnDepth)
     disp("Loading burn depth profile...")
     % Create temporary variable for brevity
-    loadtmp = loadTheseProfiles.burnDepth;
+    tmp_load = loadTheseProfiles.burnDepth;
     % Define structure
-    profiles.burnDepth.vehicle(loadtmp, 1) = "";
-    profiles.burnDepth.profile(loadtmp, 1) = "";
-    profiles.burnDepth.stage(loadtmp, 1) = NaN;
-    profiles.burnDepth.func(loadtmp, 1) = {NaN};
+    rocket.motor.profiles.burnDepth.name(tmp_load, 1) = "";
+    rocket.motor.profiles.burnDepth.curve(tmp_load, 1) = {NaN};
     
     % Read each necessary file
-    for ii = loadTheseProfiles.burnDepth
+    for stage = loadTheseProfiles.burnDepth
         % Define the current profile
-        file = profiles.burnDepth.path(ii, 1);
+        file = rocket.motor.files.burnDepth(stage, 1);
         
         % Determine if the file name was empty (ie not provided) so that
         % rtraj can know if it needs to use a more simplified (linear)
@@ -202,31 +169,24 @@ if (flags.load.profiles.burnDepth)
             % will be assumed to vanish from the rocket's centerline to the
             % outside walls in radial fashion (ie BATES grain but with no
             % inner diameter - used for expression of the inertia tensor)
-            flags.exists.profile.burnDepth(ii, 1) = false;
+            flags.exists.profile.burnDepth(stage, 1) = false;
             
         else
             % Don't define behavior if the file is spelled incorrectly such
             % that Matlab can't read it - leave those errors to Matlab
             %
             % Read the file
-            [ ...
-                profiles.burnDepth.vehicle(ii, 1), ...
-                profiles.burnDepth.stage(ii, 1), ...
-                profiles.burnDepth.profile(ii, 1), ...
-                profiles.burnDepth.func{ii, 1}, ...
-                flags.simulate.MonteCarlo_each(ii, 3) ...
-                ] ...
+            [rocket.motor.profiles.burnDepth.name(stage, 1), ...
+             rocket.motor.profiles.burnDepth.curve{stage, 1}] ...
                 = readProfile(file);
-            % Perform some basic checks on this stage's mass flow rate profile
-            checkProfile(profiles.burnDepth, "BURN-DEPTH", ii, file)
             
             % Check if a CSV profile was defined by seeing if the func is
             % still NaN. If so, then don't do the analysis
-            if (any(isnan(profiles.burnDepth.func{ii, 1}), [1, 2]))
-                flags.exists.profile.burnDepth(ii, 1) = false;
+            if (any(isnan(rocket.motor.profiles.burnDepth.curve{stage, 1}), [1, 2]))
+                flags.exists.profile.burnDepth(stage, 1) = false;
             else
                 % Mark that the burn depth profile (for this stage) exists
-                flags.exists.profile.burnDepth(ii, 1) = true;
+                flags.exists.profile.burnDepth(stage, 1) = true;
             end
         end
     end
@@ -235,28 +195,20 @@ else
 end
 fprintf("Loaded burn depth profile\n\n")
 
-% Check burn depth profile for consistency between vehicle and profile
-% names and, if all equal, reassign the vehicle and profile fields to be a
-% single string
-checkProfile(profiles.burnDepth)
-profiles.burnDepth.vehicle = profiles.burnDepth.vehicle(1);
-profiles.burnDepth.profile = profiles.burnDepth.profile(1);
-
 %% Obtain chamber pressure profile(s)
+
 if (flags.load.profiles.chamberPressure)
     disp("Loading chamber pressure profile...")
     % Create temporary variable for brevity
-    loadtmp = loadTheseProfiles.chamberPressure;
+    tmp_load = loadTheseProfiles.chamberPressure;
     % Define structure
-    profiles.chamberPressure.vehicle(loadtmp, 1) = "";
-    profiles.chamberPressure.profile(loadtmp, 1) = "";
-    profiles.chamberPressure.stage(loadtmp, 1) = NaN;
-    profiles.chamberPressure.func(loadtmp, 1) = {NaN};
+    rocket.motor.profiles.chamberPressure.name(tmp_load, 1) = "";
+    rocket.motor.profiles.chamberPressure.curve(tmp_load, 1) = {NaN};
     
     % Read each necessary file
-    for ii = loadTheseProfiles.chamberPressure
+    for stage = loadTheseProfiles.chamberPressure
         % Define the current profile
-        file = profiles.chamberPressure.path(ii, 1);
+        file = rocket.motor.files.chamberPressure(stage, 1);
         
         % Determine if the file name was empty (ie not provided) so that
         % rtraj can know if it should ignore the nozzle analysis for this
@@ -265,31 +217,24 @@ if (flags.load.profiles.chamberPressure)
             % Mark that a pressure profile wasn't given for this stage,
             % indicating that any nozzle analysis should be ignored for
             % this stage
-            flags.exists.profile.chamberPressure(ii, 1) = false;
+            flags.exists.profile.chamberPressure(stage, 1) = false;
         else
             % Don't define behavior if the file is spelled incorrectly such
             % that Matlab can't read it - leave those errors to Matlab
             %
             % Read the file
-            [ ...
-                profiles.chamberPressure.vehicle(ii, 1), ...
-                profiles.chamberPressure.stage(ii, 1), ...
-                profiles.chamberPressure.profile(ii, 1), ...
-                profiles.chamberPressure.func{ii, 1}, ...
-                flags.simulate.MonteCarlo_each(ii, 4) ...
-                ] ...
+            [rocket.motor.profiles.chamberPressure.name(stage, 1), ...
+             rocket.motor.profiles.chamberPressure.curve{stage, 1}] ...
                 = readProfile(file);
-            % Perform some basic checks on this stage's mass flow rate profile
-            checkProfile(profiles.chamberPressure, "CHAMBER-PRESSURE", ii, file)
             
             % Check if a CSV profile was defined by seeing if the func is
             % still NaN. If so, then don't do the analysis
-            if (any(isnan(profiles.chamberPressure.func{ii, 1}), [1, 2]))
-                flags.exists.profile.chamberPressure(ii, 1) = false;
+            if (any(isnan(rocket.motor.profiles.chamberPressure.curve{stage, 1}), [1, 2]))
+                flags.exists.profile.chamberPressure(stage, 1) = false;
             else
                 % Mark that the chamber pressure profile (for this stage)
                 % exists
-                flags.exists.profile.chamberPressure(ii, 1) = true;
+                flags.exists.profile.chamberPressure(stage, 1) = true;
             end
         end
     end
@@ -298,41 +243,14 @@ else
 end
 fprintf("Loaded chamber pressure profile\n\n")
 
-% Check chamber pressure profile for consistency between vehicle and
-% profile names and, if all equal, reassign the vehicle and profile fields
-% to be a single string
-checkProfile(profiles.chamberPressure)
-profiles.chamberPressure.vehicle = profiles.chamberPressure.vehicle(1);
-profiles.chamberPressure.profile = profiles.chamberPressure.profile(1);
-
-%% Compare names of vehicles and profiles for each profile to ensure they're
-% all the same and, if so, combine them in each profile to reduce repetition
-checkStringEquivalence([profiles.thrust.vehicle, ...
-    profiles.massFlowRate.vehicle, profiles.burnDepth.vehicle, ...
-    profiles.chamberPressure.vehicle], false)
-% List the vehicle's name in its profiles from the thrust profile (the
-% thrust profile MUST be present to define any rocket)
-profiles.vehicle = profiles.thrust.vehicle;
-% Get number of fields (to reorganize - more profiles get added later)
-numelfields = numel(fieldnames(profiles));
-% Reorder the fields to move the vehicle's name to the top
-if (numelfields == 5)
-    % Mass profile has not yet been added
-    profiles = orderfields(profiles, {'vehicle', ...
-        'thrust', 'massFlowRate', 'burnDepth', 'chamberPressure'});
-elseif (numelfields == 6)
-    % Mass profile has been added
-    profiles = orderfields(profiles, {'vehicle', ...
-        'thrust', 'massFlowRate', 'burnDepth', 'chamberPressure', 'mass'});
-end
-
 %% Determine if a Monte-Carlo analysis is requested/required
 flags.simulate.MonteCarlo = any(flags.simulate.MonteCarlo_each, [1, 2]);
 
 if (flags.options.use.cache)
+    motor = rocket.motor;
     % Save these results to the cache
-    save(pathToCache, 'profiles', 'flags', '-append')
+    save(pathToCache, 'motor', 'flags', '-append')
 end
 
 % Clear up workspace of temporary variables
-clear file pathToCache loadtmp previous ii numelfields loadTheseProfiles
+clear file loadTheseProfiles pathToCache previous* tmp_* stage motor

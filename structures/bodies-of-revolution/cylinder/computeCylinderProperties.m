@@ -21,7 +21,7 @@ function [profile, M, CoM, IMoIatCoM] = ...
 % 
 % Cylinder/body profile:
 %   The defining surface is given by
-%                       f(x) = R,   (0 < R)
+%                       f(x) = R,   (R > 0)
 %   where R is the radius of the cylinder.
 %   To make a hollow 3D shape, an inner surface 0 <= g(x) < f(x) is defined
 %                     g(x) = f(x) - r,   (0 < r <= R)
@@ -48,7 +48,7 @@ function [profile, M, CoM, IMoIatCoM] = ...
 %                     Size: ? (structure)
 %                     Units: SI
 % 
-% ------ Overview of content contained within the frustum ------
+% ------ Overview of content contained within the cylinder/casing ------
 % 
 %                OD - Outer diameter of the cylinder.
 %                     Size: 1-by-1 (scalar)
@@ -72,13 +72,12 @@ function [profile, M, CoM, IMoIatCoM] = ...
 % 
 % ---------------------------------------------------------------
 % 
-%             stage - Indication as to which stage the frustum belongs. The
-%                     first stage (stage = 1) indicates the frustum that
-%                     mounts to the booster that initially fires and brings
+%             stage - Indication as to which stage the cylinder belongs.
+%                     The first stage (stage = 1) indicates the cylinder
+%                     that is the booster that initially fires and brings
 %                     the vehicle off of the launch rail. The final stage
-%                     indicates the frustum that mounts the nosecone to the
-%                     last sustainer stage (if such a frustum is
-%                     specified).
+%                     indicates the cylinder that mounts to the nosecone
+%                     and is the last sustainer to fire.
 %                     Size: 1-by-1 (scalar)
 %                     Units: - (unitless)
 % 
@@ -89,14 +88,14 @@ function [profile, M, CoM, IMoIatCoM] = ...
 %                     Units: m (meters)
 % 
 %               CoM - The position of the cylinder's center of mass
-%                     relative to the frustum coordinate system
+%                     relative to the cylinder coordinate system
 %                     (positioned at the front face with its x-axis pointed
-%                     along the frustum's longitudinal axis towards the
+%                     along the cylinder's longitudinal axis towards the
 %                     center of mass).
 %                     Size: 3-by-1 (vector)
 %                     Units: m (meters)
 % 
-%             IMoIG - The cylinder's mass moment of inertia matrix taken
+%         IMoIatCoM - The cylinder's mass moment of inertia matrix taken
 %                     with respect to the cylinder's center of mass and the
 %                     cylinder coordinate system (positioned along the
 %                     longitudinal axis on the forward face with its x-axis
@@ -115,10 +114,10 @@ function [profile, M, CoM, IMoIatCoM] = ...
 outerRadius = body.OD(stage, 1)/2;
 innerRadius = body.ID(stage, 1)/2;
 length = body.length(stage, 1);
-density = body.density(stage, 1);
+density = body.density{stage, 1};
 
 %% General checks
-% Check that the cylinder is physical
+% Check that the cylinder is oriented properly and physical
 if (outerRadius < innerRadius || length < 0)
     error("Body (cylinder) is unphysical.")
 end
@@ -155,7 +154,7 @@ if (~isscalar(density))
     if (numelxsamp > numelx)
         % Redefine the sampling points to be more resolved than those
         % points defining the density function
-        x = linspace(0, length, 2*numelxsamp);
+        x = linspace(0, length, 2*numelxsamp)';
     end
     % Override the density n-by-2 input
     density = interp1(xsamp, densitysamp, x, 'linear');
@@ -166,10 +165,10 @@ outersurf = outerRadius*ones(size(x));
 innersurf = innerRadius*ones(size(x));
 
 %% Properties
-% Compute the properties of the nosecone
+% Compute the properties of the cylinder
 [M, CoM, IMoIatCoM] = computeBORProperties(x, outersurf, innersurf, density);
 
-% Provide the nosecone's profile (x, outersurf, innersurf, density)
+% Provide the cylinder's profile (x, outersurf, innersurf, density)
 profile.x = x;
 profile.outersurf = outersurf;
 profile.innersurf = innersurf;

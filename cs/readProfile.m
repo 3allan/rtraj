@@ -1,5 +1,4 @@
-function [vehicle, stage, profile, func, flag_MonteCarlo, varargout] = ...
-    readProfile(file)
+function [profile, func, flag_MonteCarlo, varargout] = readProfile(file)
 % 
 % Matt Werner (m.werner@vt.edu) - Jan 3, 2021
 % 
@@ -92,23 +91,11 @@ function [vehicle, stage, profile, func, flag_MonteCarlo, varargout] = ...
 % 
 %    Inputs:
 % 
-%              file - Path to the profile filed.
+%              file - Path to the file containing the profile.
 %                     Size: ?
 %                     Units: N/A
 % 
 %    Outputs:
-% 
-%           vehicle - Name of the vehicle. This quantity will be used to
-%                     ensure, granted that more than one profile is
-%                     provided for simulation, that the profiles are
-%                     compatible and meant to be used on the same vehicle.
-%                     Size: 1-by-1 (string)
-%                     Units: N/A
-% 
-%             stage - Stage number during which this motor is actively
-%                     burning.
-%                     Size: 1-by-1 (scalar)
-%                     Units: - (unitless)
 % 
 %           profile - Provides a (very) short description of the intended
 %                     purpose that this file has along with units for the
@@ -145,12 +132,14 @@ getDefaultValues
 % Open the file
 fid = fopen(file, 'r', 'n', 'UTF-8');
 
+%% Checks
 % Check that the file isn't empty
 thisLine = fgetl(fid);
 if (thisLine == -1), error("File %s is empty", file), end
 % Reset to the beginning
 frewind(fid)
 
+%% Preparation
 % Set default flag to indicate that a Monte-Carlo simulation is not
 % requested
 flag_MonteCarlo = false;
@@ -167,7 +156,7 @@ func = NaN(totalLineCount+2, 2);
 % Initiate counter for current number of variable outputs
 varargoutctr = 0;
 
-% Begin reading
+%% Begin reading
 isEndOfFile = feof(fid);
 while (~isEndOfFile)
     % Get the current line and increment line counter
@@ -330,20 +319,19 @@ while (~isEndOfFile)
         % Assign specific output (vehicle, profile, stage, and func) while
         % using varargout for anything else indicated with >
         switch upper(VAR)
-            case "VEHICLE"
-                vehicle = VAL;
-            case "STAGE"
-                % Accept only the first entry of VAL since stages have no
-                % uncertainty
-                stage = VAL(1, 1);
             case "PROFILE"
                 profile = VAL;
                 profileUnits = units;
             otherwise
                 % Convert VAL to standard SI units
                 if (isempty(units)), units = ""; end
-                VAL = convUnits(VAL', units, "SI");
+                VAL = convUnits(VAL, units, "SI");
+                % Attempt to add the input to the varargout cell. If the
+                % assignment fails, then let Matlab throw the error without
+                % trying to resolve it automatically
                 varargout{varargoutctr + 1} = VAL;
+                % Update the amount of arguments that have been assigned to
+                % varargout
                 varargoutctr = varargoutctr + 1;
         end
     else
@@ -356,19 +344,19 @@ while (~isEndOfFile)
     isEndOfFile = feof(fid);
 end
 
+%% Clean up the profile
 % Remove any remaining NaN values from the profile
 func = func(~isnan(func));
-% Reshape
+% Reshape the profile to be n-by-2
 func = reshape(func, [numel(func)/2, 2]);
-% Check if there was even a profile or if it was just a file of inputs
-% (without a profile)
-providedProfile = ~isempty(func);
-if (providedProfile)
+% Check if there was even a profile (or if it was just a file of > inputs
+% without a profile) and, if so, change its units to those in SI
+if (~isempty(func))
     % Convert units (time is assumed to be in seconds)
     func(:, 2) = convUnits(func(:, 2), profileUnits, "SI");
 else
     func = "No profile";
 end
 
-% Close the file
+%% Close file
 fclose(fid);

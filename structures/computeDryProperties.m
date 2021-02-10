@@ -57,18 +57,23 @@ function rocket = computeDryProperties(rocket)
 %    Inputs:
 % 
 %            rocket - The input details of the rocket in standard SI units
-%                     concerning the nose cone (.nosecone), cylinder (.cylinder),
-%                     etc. These parameters are used in determining the
-%                     rocket's structural properties (mass, center of mass,
-%                     and moment of inertia matrix).
+%                     concerning the nose cone, cylinder, etc. These
+%                     parameters are used in determining the rocket's
+%                     structural properties (mass, center of mass, and mass
+%                     moment of inertia matrix).
 %                     Size: ? (structure)
 %                     Units: SI
 % 
 %    Outputs:
 % 
-%            rocket - The newly updated structure containing all previous
+%            rocket - The newly updated rocket containing all previous
 %                     fields of the provided rocket plus the newly-found
-%                     total mass, center of mass, and inertia matrix.
+%                     total mass, center of mass, and inertia matrix. The
+%                     common origin for these quantities is taken to be at
+%                     the nosecone's tip in the BOR and body (principal)
+%                     frames. This rocket is "assembled" with everything
+%                     except the fuel/motors such that its structure is
+%                     rigidly attached together.
 %                     Size: ? (structure)
 %                     Units: SI
 % 
@@ -122,6 +127,14 @@ for stage = rocket.stages:-1:1
         distanceFromNoseconeTip(tipToOrigin, ...
         rocket.cylinder.CoM_bor{stage, 1}, rocket.cylinder.length(stage, 1));
     rocket.cylinder.tipToCoM_bor{stage, 1} = tipToCoM;
+    
+    % -------------------- OVERALL LENGTH --------------------
+    % One of the previously found quantity moves the distance measurement
+    % to the end of the current cylinder/casing, which, at the end of the
+    % stage, is the rocket's entire length. This quantity is, however, a
+    % vector, so only the first (x) component should be taken since length
+    % itself is scalar.
+    rocket.length(stage, 1) = tipToOrigin(1,1);
 end
 
 %% Total Properties
@@ -184,7 +197,7 @@ end
 
 % Transform the mass moment of inertia matrices from the BOR frame to the
 % body-fixed principal frame. The transformation follows the form 
-%                               I_t = T*I*T'
+%                           I_t = T*I*T'
 % since the mass moment of inertia matrix, I, is actually a tensor. The
 % quantity I_t represents the same tensor as I but simply expressed in a
 % different frame whose transformation is described by the rotation matrix

@@ -234,7 +234,7 @@ function [profile, M, CoM, IMoIatCoM] = computeNoseconeProperties(nosecone)
 %                     Size: 3-by-1 (vector)
 %                     Units: m (meters)
 % 
-%             IMoIG - The nosecone's mass moment of inertia matrix taken
+%         IMoIatCoM - The nosecone's mass moment of inertia matrix taken
 %                     with respect to the nosecone's center of mass and the
 %                     nosecone coordinate system (positioned at the tip
 %                     with its x-axis pointed along the conecone's
@@ -274,10 +274,7 @@ end
 %% Outer surface
 
 % Define the sampling points by first defining angular spacing coordinates
-t = linspace(0, pi, 1e3)';
-% Define cosine-spaced sample points at which to evaluate the nosecone
-% profile
-x = length * (1 - cos(t)) / 2;
+x = cosspace(0, length, 1e3)';
 
 % Define the structural properties of the nosecone based on its type
 % (series) and how the thickness is applied

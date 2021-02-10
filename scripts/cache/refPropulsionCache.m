@@ -32,17 +32,17 @@ if (~flags.options.use.cache), return, end
 % RHS is 2-by-1 before assignment)
 try
     % Thrust
-    profiles.thrust.path(:, 2) = ...
-        getModifiedByDate(profiles.thrust.path(:, 1));
+    rocket.motor.files.thrust(:, 2) = ...
+        getModifiedByDate(rocket.motor.files.thrust(:, 1));
     % Mass flow rate
-    profiles.massFlowRate.path(:, 2) = ...
-        getModifiedByDate(profiles.massFlowRate.path(:, 1)); 
+    rocket.motor.files.massFlowRate(:, 2) = ...
+        getModifiedByDate(rocket.motor.files.massFlowRate(:, 1)); 
     % Burn Depth
-    profiles.burnDepth.path(:, 2) = ...
-        getModifiedByDate(profiles.burnDepth.path(:, 1));
+    rocket.motor.files.burnDepth(:, 2) = ...
+        getModifiedByDate(rocket.motor.files.burnDepth(:, 1));
     % Chamber pressure
-    profiles.chamberPressure.path(:, 2) = ...
-        getModifiedByDate(profiles.chamberPressure.path(:, 1));
+    rocket.motor.files.chamberPressure(:, 2) = ...
+        getModifiedByDate(rocket.motor.files.chamberPressure(:, 1));
     
 catch error_gettingModifiedByDates
     switch error_gettingModifiedByDates.identifier
@@ -59,20 +59,24 @@ end
 % rtraj.m and the resulting table contains few entries, so the load is fast
 try
     % Obtain the path that points to where the propulsion cache is
-    pathToCache = getPathToCache('previous_propulsion_profiles.mat');
+    pathToCache = getPathToCache('previous_propulsion_motor.mat');
     % Attempt to load the cache (may not exist)
     previous = load(pathToCache);
     flags.exists.previous.PropulsionCache = true;
-catch error_cacheMiss
+catch flag_cacheMiss
     % Check possible causes for error
-    switch error_cacheMiss.identifier
+    switch flag_cacheMiss.identifier
         case 'MATLAB:load:couldNotReadFile'
             % Create a new cache file since one currently doesn't exist and
             % carry on to load the propulsion profiles
-            save(pathToCache, 'profiles')
+            motor = rocket.motor;
+            save(pathToCache, 'motor')
+            clear motor
         otherwise
-            rethrow(error_cacheMiss)
+            rethrow(flag_cacheMiss)
     end
+    % Mark the flag
+    flags.exists.previous.PropulsionCache = false;
     return
 end
 
@@ -86,46 +90,35 @@ if (flags.exists.previous.rtrajWorkspace)
     %
     % Check which, if any, thrust profiles differ from the previous
     % simulation
-    FTprofile = profiles.thrust.path(:, 1);
-    FTModDate = profiles.thrust.path(:, 2);
-    previous_FTprofile = previous.profiles.thrust.path(:, 1);
-    previous_FTModDate = previous.profiles.thrust.path(:, 2);
-    loadTheseProfiles.thrust = hasFileChanged(FTprofile, FTModDate, ...
-                                previous_FTprofile, previous_FTModDate)';
-    clear FTprofile FTModDate previous_FTprofile previous_FTModDate
-    %
+    loadTheseProfiles.thrust = ...
+        hasFileChanged(rocket.motor.files.thrust(:, 1), ...
+                       rocket.motor.files.thrust(:, 2), ...
+                       previous.motor.files.thrust(:, 1), ...
+                       previous.motor.files.thrust(:, 2));
     %
     % Check which, if any, mass flow rate profiles differ from the previous
     % simulation
-    MFprofile = profiles.massFlowRate.path(:, 1);
-    MFModDate = profiles.massFlowRate.path(:, 2);
-    previous_MFprofile = previous.profiles.massFlowRate.path(:, 1);
-    previous_MFModDate = previous.profiles.massFlowRate.path(:, 2);
-    loadTheseProfiles.massFlowRate = hasFileChanged(MFprofile, MFModDate, ...
-                                previous_MFprofile, previous_MFModDate)';
-    clear MFprofile MFModDate previous_MFprofile previous_MFModDate
-    %
+    loadTheseProfiles.massFlowRate = ...
+        hasFileChanged(rocket.motor.files.massFlowRate(:, 1), ...
+                       rocket.motor.files.massFlowRate(:, 2), ...
+                       previous.motor.files.massFlowRate(:, 1), ...
+                       previous.motor.files.massFlowRate(:, 2));
     %
     % Check which, if any, burn depth profiles differ from the previous
     % simulation
-    BDprofile = profiles.burnDepth.path(:, 1);
-    BDModDate = profiles.burnDepth.path(:, 2);
-    previous_BDprofile = previous.profiles.burnDepth.path(:, 1);
-    previous_BDModDate = previous.profiles.burnDepth.path(:, 2);
-    loadTheseProfiles.burnDepth = hasFileChanged(BDprofile, BDModDate, ...
-                                previous_BDprofile , previous_BDModDate)';
-    clear BDprofile BDModDate previous_BDprofile previous_BDModDate
-    %
+    loadTheseProfiles.burnDepth = ...
+        hasFileChanged(rocket.motor.files.burnDepth(:, 1), ...
+                       rocket.motor.files.burnDepth(:, 2), ...
+                       previous.motor.files.burnDepth(:, 1), ...
+                       previous.motor.files.burnDepth(:, 2));
     %
     % Check which, if any, chamber pressure profiles differ from the previous
     % simulation
-    PCprofile = profiles.chamberPressure.path(:, 1);
-    PCModDate = profiles.chamberPressure.path(:, 2);
-    previous_PCprofile = previous.profiles.chamberPressure.path(:, 1);
-    previous_PCModDate = previous.profiles.chamberPressure.path(:, 2);
-    loadTheseProfiles.chamberPressure = hasFileChanged(PCprofile, PCModDate, ...
-                                previous_PCprofile, previous_PCModDate)';
-    clear PCprofile PCModDate previous_PCprofile previous_PCModDate
+    loadTheseProfiles.chamberPressure = ...
+        hasFileChanged(rocket.motor.files.chamberPressure(:, 1), ...
+                       rocket.motor.files.chamberPressure(:, 2), ...
+                       previous.motor.files.chamberPressure(:, 1), ...
+                       previous.motor.files.chamberPressure(:, 2));
 end
 
 % Adjust load flags according to any changes made in the files
@@ -143,4 +136,6 @@ if (isempty(loadTheseProfiles.chamberPressure))
 end
 
 % Update the cache
-save(pathToCache, 'profiles')
+motor = rocket.motor;
+save(pathToCache, 'motor')
+clear motor

@@ -24,7 +24,7 @@ if (flags.load.ellipsoid)
 end
 % Load the geopotential harmonic coefficients
 if (flags.load.gravityField)
-    tmp_JD = time.launch.JulianDate;
+    tmp_JD = earth.time.launch.JD;
     [n, m, ~, Cnm, Snm, ~, ~] = ...
         loadGravitationalCoefficients(earth.gravity.degree, ...
                             earth.gravity.order, earth.gravity.model);
@@ -42,7 +42,7 @@ else
 end
 % Load the magnetic field potential harmonic coefficients
 if (flags.load.magneticField)
-    tmp_JD = time.launch.JulianDate;
+    tmp_JD = earth.time.launch.JD;
     [n, m, gnm, hnm, dgnmdt, dhnmdt] = ...
         loadMagneticCoefficients(earth.magnetic.degree, earth.magnetic.order);
     [gnm, hnm] = updateMagneticCoefficients(tmp_JD, gnm, hnm, dgnmdt, dhnmdt);
@@ -62,7 +62,7 @@ if (flags.load.terrain)
     [earth.terrain.longitudes, earth.terrain.geodeticLatitudes, ...
         earth.terrain.WGS84ToGeoid, earth.terrain.GeoidToTerrain, ...
         earth.terrain.WGS84ToTerrain] ...
-        = loadTerrain(earth.terrain.angleUnits);
+        = loadTerrain("radians");
 else
     disp("Hitting terrain cache...")
     fprintf("Loaded terrain\n\n")

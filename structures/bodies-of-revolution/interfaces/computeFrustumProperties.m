@@ -144,7 +144,7 @@ function [profile, M, CoM, IMoIatCoM] = ...
 %                     Size: 3-by-1 (vector)
 %                     Units: m (meters)
 % 
-%             IMoIG - The frustum's mass moment of inertia matrix taken
+%         IMoIatCoM - The frustum's mass moment of inertia matrix taken
 %                     with respect to the frustum's center of mass and the
 %                     frustum coordinate system (positioned along the
 %                     longitudinal axis on the forward face with its x-axis
@@ -166,11 +166,10 @@ rearRadius = frustum.rearOD(stage, 1)/2;
 length = frustum.length(stage, 1);
 thicknessType = frustum.thicknessType(stage, 1);
 thickness = frustum.thickness(stage, 1);
-density = frustum.density(stage, 1);
+density = frustum.density{stage, 1};
 
-% Check if all values are 0 or NaN
-tmp_els = [frontRadius, rearRadius, length, thickness, density];
-if (all(tmp_els == 0) || all(isnan(tmp_els)))
+% Check if the frustum physically exists
+if (length == 0 || isnan(length))
     % No frustum - return 0 for the outputs
     [M, CoM, IMoIatCoM, profile] = deal(0);
     return
@@ -185,9 +184,6 @@ checkxInInterval(thickness, [0, inf])
 % Check that the rear and front faces have been filled out correctly
 if (frontRadius > rearRadius)
     error("Backwards frustum.")
-end
-if (frontRadius == rearRadius)
-    error("Frustum may not be a cylinder.")
 end
 
 % Check the density is either a scalar or an n-by-2 array with n > 1
@@ -261,7 +257,7 @@ switch upper(thicknessType)
         sintc = heightGain/sideLength;
         
         % Calculate the vertical thickness
-        verticalThickness = thickness/sintc;
+        verticalThickness = thickness*sintc;
         
         % Shift the outside surface by the equivalent vertical thickness
         innersurf = outersurf - verticalThickness;
@@ -280,10 +276,10 @@ if (~isscalar(density))
 end
 
 %% Properties
-% Compute the properties of the nosecone
+% Compute the properties of the frustum
 [M, CoM, IMoIatCoM] = computeBORProperties(x, outersurf, innersurf, density);
 
-% Provide the nosecone's profile (x, outersurf, innersurf, density)
+% Provide the frustum's profile (x, outersurf, innersurf, density)
 profile.x = x;
 profile.outersurf = outersurf;
 profile.innersurf = innersurf;
