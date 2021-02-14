@@ -28,27 +28,23 @@ rocket = computeWetProperties(rocket);
 rocket.motor.retardedTimes = NaN(rocket.stages, 2);
 
 % Objectives:
-%  1. Extract the burntime(s) from the thrust profile(s)
-%  2. Determine delays to firing from launch
-%  3. Provide a (linear) mass flow rate if a mass flow rate profile wasn't
+%  1. Determine delays to firing from launch
+%  2. Provide a (linear) mass flow rate if a mass flow rate profile wasn't
 %     explicitly given
-%  3a. Ensure that the mass flow rate is negative
-%  4. Calculate the mass profile
-%  5. Provide a (linear variation of) mass distribution if a burn depth
+%  2a. Ensure that the mass flow rate is negative
+%  3. Calculate the mass profile
+%  4. Provide a (linear variation of) mass distribution if a burn depth
 %     profile wasn't explicitly given
-%  6. Indicate whether a chamber pressure profile was provided or not
-%  7. Determine the 'pchip' coefficients for consistently fast
+%  5. Indicate whether a chamber pressure profile was provided or not
+%  6. Determine the 'pchip' coefficients for consistently fast
 %     interpolation
-%  8. Determine the location of the motor's center of mass relative to the
-%     nosecone's BOR frame
-%  9. Calculate the initial (fully loaded) center of mass position
 % 
 % Note: Units for propulsive characteristics are already in SI, so no unit
 %       conversions need to be done, and burn times are assumed to be when
 %       the thrust reaches 0.
 for stage = 1:rocket.stages
     
-    % ======================= Retarded Time (2) ===========================
+    % ======================= Retarded Time (1) ===========================
     if (stage == 1)
         % No delays during ignition since ignition occurs at t = 0
         rocket.motor.retardedTimes(1, :) = zeros(1, 2);
@@ -63,7 +59,7 @@ for stage = 1:rocket.stages
     end
     
     
-    % =================== Mass Flow Rate Profile (3) ======================
+    % =================== Mass Flow Rate Profile (2) ======================
     % Ensure that the mass flow rate profile is negative (3a)
     if (flags.exists.profile.massFlowRate(stage, 1))
         % Negate the provided mass flow rate profile 
@@ -82,7 +78,7 @@ for stage = 1:rocket.stages
     end
     
     
-    % ======================== Mass Profile (4) ===========================
+    % ======================== Mass Profile (3) ===========================
     % Calculate the motor's mass as a function of burntime explicitly from
     % the mass flow rate via numerical integration
     
@@ -110,7 +106,7 @@ for stage = 1:rocket.stages
     rocket.mass{stage, 1} = [tmp_t, rocket.wet.mass(stage) - tmp_expelledMass];
     
     
-    % ===================== Burn Depth Profile (5) ========================
+    % ===================== Burn Depth Profile (4) ========================
     % Nothing to do if the profile is provided, but if it's not provided,
     % then make a linear variation varying from the rocket's centerline to
     % its outer diameter0
@@ -122,7 +118,7 @@ for stage = 1:rocket.stages
         profiles.burnDepth.func{stage, 1} = [tmp_tb, tmp_bd];
     end
     
-    % ================== Chamber Pressure Profile (6) =====================
+    % ================== Chamber Pressure Profile (5) =====================
     % Nothing to do since the flags regarding existence of a chamber
     % pressure profile have already been determined; this objective serves
     % only as a reminder that it has already been done.
@@ -133,7 +129,8 @@ for stage = 1:rocket.stages
     
     
     % =====================================================================
-    % = Piecewise Cubic Hermite Interpolating Polynomial Coefficients (7) =
+    % = Piecewise Cubic Hermite Interpolating Polynomial Coefficients (6) =
+    % =====================================================================
     % Obtain (H)ermite (P)olynomial (C)oefficients (HPC) for fast
     % interpolation ('pchip') of the rocket's mass, thrust, burn depth, and
     % chamber pressure (if provided)

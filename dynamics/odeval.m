@@ -1,4 +1,4 @@
-function f = odeval(t, x, pars, stage)
+function f = odeval(t, x, earth, rocket, flags, stage)
 % 
 % Matt Werner (m.werner@vt.edu) - Dec 10, 2020
 % 
@@ -107,6 +107,11 @@ function f = odeval(t, x, pars, stage)
 
 % No checks
 
+% Display integration time
+if (flags.options.show.ODEtime)
+    disp("t = " + t)
+end
+
 %% Setup
 
 % Provide symbols to common elements
@@ -118,43 +123,48 @@ w_bod = x(11:13, 1);
 % Extract necessary elements
 % ----------------------------------------------
 % Ellipsoid equatorial radius (semimajor axis)
-Req = pars.ellipsoid.Req;
+Req = earth.pars.Req;
 % Ellipsoid eccentricity
-e = pars.ellipsoid.e;
+e = earth.pars.e;
 % Ellipsoid squared angular rate of rotation
-w2 = pars.ellipsoid.w2;
+w2 = earth.pars.w2;
 % Angular velocity of Earth's rotation along ENV axes
-w_env = pars.ellipsoid.w_env_rowvec';
+w_env = earth.vectors.w_env;
 % Position of launch site relative to the ECF frame
-rLaunch_ecf = pars.launchsite.rLaunch_ecef_rowvec';
+rLaunch_ecf = earth.vectors.launchsite_ecf;
 % Height of launch site relative to the geoid
 % Rotation matrices
-Tenv_ecf = pars.rotations.back.singles.Tenv_ecf;
-Tecf_env = pars.rotations.forw.singles.Tecf_env;
+Tenv_ecf = earth.T.env_ecf;
+Tecf_env = earth.T.ecf_env;
 % Atmosphere model
-atmosModel = pars.atmosphericModel.atmosModel;
-localDensity = pars.launchsite.localDensity;
-tLaunchUTC = pars.time.tLaunchUTC;
+atmosModel = earth.atmos.model;
+localDensity = earth.launchsite.density;
+tLaunchUTC = earth.time.launch.UTC;
 % Gravitational potential coefficients
-nG = pars.coefficients.gravity.nG;
-mG = pars.coefficients.gravity.mG;
-Cnm = pars.coefficients.gravity.Cnm;
-Snm = pars.coefficients.gravity.Snm;
-% Initial masses of the whole stage and motor/fuel
-massInit = pars.rocket.massInit;
-massMotor = pars.rocket.massMotor;
+nG = earth.gravity.coefficients.degrees;
+mG = earth.gravity.coefficients.orders;
+Cnm = earth.gravity.coefficients.cosine;
+Snm = earth.gravity.coefficients.sine;
+
 % Mass profile via HPC (during burning)
-TMhpc = pars.mass.TMhpc;
+massHPC = rocket.hpcs.mass{stage,1};
+%%%%%%%%%%%%%%%%%%Quarantined%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Initial masses of the whole stage and motor/fuel
+massInitial = rocket.wet.mass(stage,1);
+massMotor = rocket.motor.mass(stage,1);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 % Retarded burn time for current stage
-retardedPropTime = pars.rocket.retardedPropTime;
+retardedPropTime = rocket.motor.retardedTimes(stage,1);
 % Burn times
-burnTimes = pars.rocket.burnTimes;
+burnTimes = rocket.motor.burnTime(stage,1);
 % Thrust profile via HPC
-FThpc = pars.thrustProfile.FThpc;
+thrustHPC = rocket.hpcs.thrust{stage,1};
 % Exit area
-areaExit = pars.rocket.areaExit;
+areaExit = rocket.nozzle.EA(stage,1);
 % Drag reference area
-areaRefer = pars.rocket.areaRefer;
+areaRefer = rocket.area.reference(stage,1);
 % ----------------------------------------------
 
 %% Time and Position
@@ -191,13 +201,14 @@ geocentricColat_ecf = pi/2 - geocentricLat_ecf;
 % Obtain (ellipsoidal) representation of the flight vehicle's current 
 % position with respect to the ECF frame associated with the earth's
 % ellipsoid
-[longitudeCurrent, geodeticLatCurrent, GPShCurrent] = TransformGeocentric2GeodeticCoordinates(xecf, yecf, zecf, Req, e);
-% Convert to degrees
-longitudeCurrentDeg = rad2deg(longitudeCurrent);
-geodeticLatCurrentDeg = rad2deg(geodeticLatCurrent);
+[longitudeCurrent, geodeticLatCurrent, GPShCurrent] = ...
+    TransformGeocentric2GeodeticCoordinates(xecf, yecf, zecf, Req, e);
 
-% =========================== MSL Altitude ===============================
-geoidUndulationCurrent = fastinterp2(pars.terrain.longitudes.longitudes, pars.terrain.geodeticLatitudes.geodeticLatitudes, pars.terrain.heights.WGS84ToGeoid, longitudeCurrentDeg, geodeticLatCurrentDeg);
+% % =========================== MSL Altitude ===============================
+geoidUndulationCurrent = fastinterp2(earth.terrain.longitudes, ...
+                                     earth.terrain.geodeticLatitudes, ...
+                                     earth.terrain.WGS84ToGeoid, ...
+                                     longitudeCurrent, geodeticLatCurrent);
 MSLhCurrent = GPShCurrent - geoidUndulationCurrent;
 
 %% Atmosphere
@@ -207,7 +218,7 @@ MSLhCurrent = GPShCurrent - geoidUndulationCurrent;
 [altDensity, altTemperature] = atmos(atmosModel, MSLhCurrent, geodeticLatCurrent, longitudeCurrent, tCurrentUTC.Year, tCurrentDOY, tCurrentSOD);
 % Use ideal gas law to get the pressure (unchecked, use a different atmos
 % model maybe) (totally wrong - must use molecular T, not environmental T,
-% and also R is constant)
+% and also R isn't constant)
 altPressure = 287*altDensity*altTemperature;
 
 %% Nominal Forces & Accelerations
@@ -245,7 +256,11 @@ Tbod_vel = getTransformationVel2Body(angleOfAttack, angleBod2VelRot3Roll);
 % ==================== Gravitational Acceleration ========================
 % Obtain spherical harmonic expression for the gravitational acceleration
 % experienced at the current position (ECF spherical basis) (EGM2008)
-accelGrav_ecfsphr = GradGravityPotential(3986004.415e8, 6378136.3, nG, mG, Cnm, Snm, rmagecf, longitude_ecf, geocentricLat_ecf);
+accelGrav_ecfsphr = ...
+    GradGravityPotential(3986004.415e8, 6378136.3, ... EGM2008 values
+                         nG, mG, ... Degrees and orders
+                         Cnm, Snm, ... Cosine and sine coefficients
+                         rmagecf, longitude_ecf, geocentricLat_ecf);
 % Rotate the expression for gravitational acceleration from the ECF
 % spherical frame to the local launch ENV frame
 accelGrav_env = Tenv_ecfsphr*accelGrav_ecfsphr;
@@ -267,24 +282,26 @@ g_env = accelGrav_env + accelCentModified_env;
 flag_isFiring = false;
 FT_env = zeros(3, 1);
 % If not firing, then the vehicle is coasting during this stage
-finalMass = massInit(stage) - massMotor(stage);
+expelledMass = massMotor;
+finalMass = massInitial - expelledMass;
 mass = finalMass;
 % Define the time during which the rocket is producing thrust to propel
 % itself upwards
-tburnCurrent = max(0, t - retardedPropTime(stage));
+tburnCurrent = max(0, t - retardedPropTime);
 % Check if the vehicle is actually firing
-if (tburnCurrent < burnTimes(stage))
+if (tburnCurrent < burnTimes)
     % Update flag
     flag_isFiring = true;
     % Calculate the current mass via HPC interpolation
-    mass = max(mass, ppval(TMhpc{stage}, tburnCurrent));
+    mass = max(mass, ppval(massHPC, tburnCurrent));
     % Reobtain the expelled mass (first used in creating the HPC - faster
     % to interpolate only once) Note: This quantity is nonpositive
-    expelledMass = mass - massInit(stage);
+    expelledMass = mass - massInitial;
     % Interpolate into the thrust profile at this current burn time
     % ensuring impossibility of numerical anomalies providing negative
     % thrust
-    FT = max(0, ppval(FThpc{stage}, tburnCurrent) + (100000 - altPressure)*areaExit(stage));
+    FT = max(0, ppval(thrustHPC, tburnCurrent) + ...
+        (rocket.motor.profiles.thrust.ambientPressure(stage,1) - altPressure)*areaExit);
     % The nozzles are NOT capable of thrust vectoring (no gimbaling).
     % Therefore, the thrust is directed completely along its body-frame 3-axis
     % which points from the center of mass directly out of the nosecone, which
@@ -300,26 +317,35 @@ end
 Vsq = V^2;
 % Freestream dynamic pressure experienced by the vehicle at altitude
 Q = 0.5*altDensity*Vsq;
-% Determine the drag coefficient
+% Determine the drag coefficient - Sample value (THIS IS NOT CORRECT!)
 CD = 1;
 % Multiply the freestream dynamic pressure by the reference area 
 % >> The reference area MUST be consistent with the reference area used in
 % determining the drag coefficient CD <<
-Q_S = Q*areaRefer(stage);
+Q_S = Q*areaRefer;
 FD = Q_S*CD;
 FD_vel = [0; 0; -FD];
-% Obtain transformation matrix
-% aoa = ?, Tenv_vel = T(aoa, ?), which rotations to use ?
+
+% Transform from the velocity frame to the body-fixed frame
+FD_bod = Tbod_vel*FD_vel;
 % Transform from the velocity frame to the ENV frame
 FD_env = Tenv_bod*Tbod_vel*FD_vel;
 
 % ================================ Lift ==================================
-% FL_env = ...
+% Sample value (THIS IS NOT CORRECT!)
+FL_bod = zeros(3,1);
+
+% Transform the lift into the env frame
+FL_env = Tenv_bod*FL_bod;
 
 %% Off-Nominal Forces & Accelerations
 
 % ================================ Wind ==================================
-% FW_bod = ...?
+% Sample value (THIS IS NOT CORRECT!)
+FW_bod = zeros(3,1);
+
+% Transform the lift into the env frame
+FW_env = Tenv_bod*FW_bod;
 % aoa = ?
 
 %% Noninertial Accelerations
@@ -333,7 +359,8 @@ accel_centrifugalPlusCoriolis = accel_centrifugal + accel_coriolis;
 % ==================== Position of the Center of Mass ====================
 % Center of mass is calculated relative to the nose tip in the body-fixed
 % frame
-
+CoMatTip_body = (rocket.wet.CoMatTip_body{stage,1}*rocket.wet.mass(stage,1) - ...
+            rocket.motor.tipToCoM_body{stage,1}*expelledMass) / mass;
 
 
 % ================== Position of the Center of Pressure ==================
@@ -343,7 +370,6 @@ accel_centrifugalPlusCoriolis = accel_centrifugal + accel_coriolis;
 
 
 % ============== Aerodynamic Forces on Center of Pressure ================
-return
 FatCP_bod = FD_bod + FL_bod + FW_bod;
 
 
@@ -358,14 +384,34 @@ FatCP_bod = FD_bod + FL_bod + FW_bod;
 % force is F = (FD_bod + FL_bod) (expressed in the body frame of course).
 % That is, M1, M2, and M3 are just the body-frame components to be used in
 % Euler's equation from M_bod = r_bod x F_bod
-rCGtoCP_bod = [xCP_bod; yCP_bod; zCP_bod];
+rCGtoCP_bod = [0;0;0];%[xCGtoCP_bod; yCGtoCP_bod; zCGtoCP_bod];
 M_bod = cross(rCGtoCP_bod, FatCP_bod);
 
 
+% ============================ Inertia Matrix =============================
+Tbody_bor = getTransformationBOR2Body;
+burnDepth = ppval(rocket.hpcs.burnDepth{stage,1}, retardedPropTime);
+% Sample value (THIS IS NOT CORRECT!)
+IGB = translateIMoIatPToCoM(mass, CoMatTip_body, ...
+                            rocket.wet.IMoIatTip_body{stage,1});
 
 % ============== Evaluate Time-Derivative of Inertia Matrix ===============
+% Assume first that the rocket isn't firing any motors which is true for
+% the majority of the flight. In doing so, express the 3-by-3 time
+% derivative of the inertia matrix as a scalar 0 for computational
+% efficiency.
+dIGBdt = 0;
+if (flag_isFiring)
+    % Update the time derivative of the inertia matrix to reflect the fact
+    % that the motor is current burning (changing shape). Thus, the mass
+    % distribution is changing in time, so the derivative is nonzero.
+    
+    % Sample value (THIS IS NOT CORRECT!)
+    dIGBdt = rocket.motor.dIMoIatCoMdt_body{stage,1};
+end
 
-
+%% Quaternion Kinematics
+xiq = [quat(4)*eye(3) + getCrossProductEquivalentMatrix(quat(1:3)); -quat(1:3)'];
 
 %% Nonlinear Dynamics Model
 % Define the dynamics of the model - Accelerations are written in the
@@ -391,6 +437,6 @@ M_bod = cross(rCGtoCP_bod, FatCP_bod);
 % 13. f(13) = dw3/dt,
 f = zeros(13, 1);
 f(1:3,   1) = v_env;
-f(4:6,   1) = mass\(FT_env + FD_env + FL_env) + g_env - accel_centrifugalPlusCoriolis;
-f(7:10,  1) = 0.5*[quat(4)*eye(3) + getCrossProductEquivalentMatrix(quat(1:3)); -quat(1:3)']*w_bod;
-f(11:13, 1) = IGB\(M_bod - cross(w_bod, IG_bod*w_bod) - dIGBdt*w_bod);
+f(4:6,   1) = mass\(FT_env + FD_env + FL_env + FW_env) + g_env - accel_centrifugalPlusCoriolis;
+f(7:10,  1) = 2\xiq*w_bod;
+f(11:13, 1) = IGB\(M_bod - cross(w_bod, IGB*w_bod) - dIGBdt*w_bod);

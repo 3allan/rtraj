@@ -21,8 +21,8 @@ flags.options.ode.relativeTolerance = 1e-5; % Positive scalar - Relative error t
 flags.options.ode.absoluteTolerance = 1e-7; % Positive scalar - Absolute error tolerance bound
 flags.options.ode.initialStep = 1e-3; % Positive scalar - Initial step size in time
 flags.options.ode.maxStep = inf; % Positive scalar - Maximum permissible time step (including inf)
-flags.options.include.perturbations = false; % true/false - Consider perturbations to nominal flight
-flags.options.include.cloneDynamics = false; % true/false - Save time by performing no additional calculations
+flags.options.dynamics.perturbations = false; % true/false - Consider perturbations to nominal flight
+flags.options.dynamics.clone = false; % true/false - Save time by performing no additional calculations
 flags.options.show.plots = false; % true/false - Show plots
 flags.options.show.runtime = true; % true/false - Show runtime after finishing
 flags.options.show.ODEtime = true; % true/false - Show solver times at each time step
@@ -80,13 +80,4 @@ finalizeInputs
 % The J2000 coordinates may be transformed into an Earth-fixed reference
 % frame according to IAU-2000/2006 reduction using the P03 precession
 % model.
-[t, x, te, xe, ie] = deal(cell(rocket.stages, 1));
-for s = 1:rocket.stages
-    [t{s}, x{s}, te{s}, xe{s}, ie{s}] = ...
-        ode113(@(tdum, xdum) odeval(tdum, xdum, earth, rocket, flags, s), ... Integrator
-               [0, 2000], ... Time range
-               rocket.initial.state, ...
-               flags.options.ode.settings);
-    t0 = t{s}(end);
-    x0 = x{s}(end, :);
-end
+traj = odeden(earth, rocket, flags);

@@ -50,6 +50,13 @@ function [angleOfAttack, angleOfVelRoll] = calculateAngleOfAttack(v, V)
 %                     Units: - (radians)
 % 
 
+% Return zero angles if the velocity vanishes
+if (V == 0)
+    angleOfAttack = 0;
+    angleOfVelRoll = 0;
+    return
+end
+
 % Obtain the angle of attack by transforming the state velocity (ENV) to
 % the body-fixed frame and using the standard equation for an angle between
 % two vectors
