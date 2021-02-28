@@ -86,7 +86,7 @@ direction(1) = 1;
 % Ensure that this event may only be marked once - give it a maximum of 15
 % seconds to clear the rail (Apollo 11 took 12 seconds)
 if (t < 15)
-    pos_rail = earth.T.env_rail*x(1:3);
+    pos_rail = earth.T.rail_env*x(1:3);
     value(1) = pos_rail(3,1) - earth.launchsite.towerLength(1,1);
     isterminal(1) = 0;
     direction(1) = 1;
