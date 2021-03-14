@@ -70,24 +70,32 @@ end
 if (x(2) == x(1) || y(2) == y(1))
     error("Input elements x and y must be strictly increasing.")
 end
-% Try to fix if either x or y is monotone decreasing
-if (x(2) < x(1))
-    % Flip the x direction and the columns in f
-    x = flip(x);
-    f = flip(f, 2);
+% Check if x is monotone increasing or decreasing
+if (x(2) > x(1))
+    % Direction used to find left and right indices
+    L_dir = 'last';
+    R_dir = 'first';
+else
+    % x is monotone decreasing; left and right directions are flipped
+    L_dir = 'first';
+    R_dir = 'last';
 end
-if (y(2) < y(1))
-    % Flip the y direction and the rows in f
-    y = flip(y);
-    f = flip(f, 1);
+% Check if y is monotone increasing or decreasing
+if (y(2) > y(1))
+    % Direction used to find top and bottom indices
+    T_dir = 'first';
+    B_dir = 'last';
+else
+    % y is monotone decreasing; left and right directions are flipped
+    T_dir = 'last';
+    B_dir = 'first';
 end
 
-% Find the closest 4 points surrounding (Xq, Yq) to perform bilinear
-% interpolation
-L = find(x <= xq, 1, 'last'); % Left index (x direction)
-R = find(x >= xq, 1, 'first'); % Right index (x direction)
-T = find(y >= yq, 1, 'first'); % Top index (y direction)
-B = find(y <= yq, 1, 'last'); % Bottom index (y direction)
+% Find the closest 4 points surrounding (Xq, Yq) to perform bilinear interpolation
+L = find(x <= xq, 1, L_dir); % Left index (x direction)
+R = find(x >= xq, 1, R_dir); % Right index (x direction)
+T = find(y >= yq, 1, T_dir); % Top index (y direction)
+B = find(y <= yq, 1, B_dir); % Bottom index (y direction)
 
 % Check if there were any direct matches so that no interpolation is
 % necessary
