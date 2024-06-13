@@ -2,8 +2,14 @@
 /cache/
 /profiles/
 /earth-model/**/*-source/
-mats/
+mats/EGM/*.mat
+mats/EGM/coefficientmats/*.mat
 deprecated/
+
+# Include these files from the mat folder
+!mats/EGM/*.m
+!mats/EGM/coefficientmats/fes2004CnmSnm.mat
+!mats/EGM/coefficientmats/*500x500.m*
 
 # Ignore these files
 *.asv
