@@ -10,6 +10,7 @@ deprecated/
 !mats/EGM/*.m
 !mats/EGM/coefficientmats/fes2004CnmSnm.mat
 !mats/EGM/coefficientmats/*500x500.m*
+!mats/EGM/coefficientmats/*Geoid.mat
 
 # Ignore these files
 *.asv
