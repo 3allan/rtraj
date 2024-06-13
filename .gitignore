@@ -8,3 +8,19 @@ deprecated/
 # Ignore these files
 *.asv
 *.fig
+*.dat
+*.script
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.dvi
+*.gnuplot
+*.log
+*.out
+*.pre
+*.ps
+*.xml
+*synctex.gz
+*.tex.bak
+*.toc

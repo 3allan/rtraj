@@ -42,6 +42,8 @@
 \usepackage{cleveref}              % Not sure but linked with hyperref in SE answer (https://tex.stackexchange.com/questions/100905/best-practice-for-hyperref-link-colours?rq=1)
 \usepackage{caption}
 
+% Use images from image folder
+\graphicspath{{images/}}
 
 \newcommand\myshade{85}
 \colorlet{mylinkcolor}{violet}
@@ -331,7 +333,7 @@
 	%	Logo
 	%------------------------------------------------
 	\vfill\vfill
-%%%	\hspace*{0cm}\includegraphics[width=0.7\linewidth]{VTlogo.png}\\[4cm] % Include a department/university logo - this will require the graphicx package		
+    \hspace*{0cm}\includegraphics[width=0.45\linewidth]{rtraj-final.eps}\\[4cm] % Include a department/university logo - this will require the graphicx package		
 
 	%------------------------------------------------
 	%	Date
@@ -452,7 +454,7 @@ The Julian date in the Gregorian calendar is founded with epoch November 24, 471
 \begin{align}
 \mathrm{JDN} &= \floor*{\frac{1461}{4}\left(Y_G + 4800 + \floor*{\frac{M_G - 14}{12}}\right)} + \floor*{\frac{367}{12}\left(M_G - 2 - 12 \floor*{\frac{M_G - 14}{12}}\right)} \nonumber\\&\qquad - \floor*{\frac{3}{4}\floor*{\frac{1}{100}\left(Y_G + 4900 + \floor*{\frac{M_G - 14}{12}}\right)}} + D_G - \num{32075} \ [\mathrm{days}],
 \end{align}
-where $Y$, $M$, and $D$ are the corresponding year, month, and day of the month in the Gregorian calendar.
+where $Y_G$, $M_G$, and $D_G$ are the corresponding year, month, and day of the month in the Gregorian calendar.
 %
 Regardless of the calendar used, these Julian date numbers are the same and the Julian date is based on the 24-hour mean solar day as
 \begin{equation}
@@ -1450,19 +1452,19 @@ Considering an object $\mathfrak{X}$ at $(\lambda, \phi, h)$ in the $\{\hat{\ima
 \pgfmathsetmacro{\c}{1.05} %0.9
 
 % Draw the spheroid
-%%%%%%%% \tdplotsetpolarplotrange{0}{180}{0}{360}
-%%%%%%%% \tdplotsphericalsurfaceplot{72}{36}{1/sqrt((sin(\tdplottheta)*cos(\tdplotphi) / \a)^2 + (sin(\tdplottheta)*sin(\tdplotphi) / \b)^2 + (cos(\tdplottheta) / \c)^2)}{black}{white}{}{}{}
+\tdplotsetpolarplotrange{0}{180}{0}{360}
+\tdplotsphericalsurfaceplot{72}{36}{1/sqrt((sin(\tdplottheta)*cos(\tdplotphi) / \a)^2 + (sin(\tdplottheta)*sin(\tdplotphi) / \b)^2 + (cos(\tdplottheta) / \c)^2)}{black}{white}{}{}{}
 \draw[->, >=latex, thick, color=black] (\a,0,0) -- (\a+0.3, 0, 0) node[left,xshift=1mm,yshift=1.925035mm]{\scalebox{0.94}{$\hat{\imath}$}}; %node[anchor=north east, xshift=1.7mm, yshift=2.3mm]{$\hat{e}_\xi$};
 \draw[->, >=latex, thick, color=black] (0,\b,0) -- (0, \b+0.4, 0) node[right]{$\hat{\jmath}$};
 \draw[->, >=latex, thick, color=black] (0,0,\c) -- (0, 0, \c+0.3) node[above,yshift=-0.6mm]{$\hat{k}$};
 % ^^^^^^^^^^^^^^ Draw the wireframe vvvvvvvvvvvv
 % Fill in `lune' (\tdplotsetpolarplotrange{lowertheta}{uppertheta}{lowerphi}{upperphi}
-%%%%%%%% \tdplotsetpolarplotrange{0}{90}{0}{90}
-%%%%%%%% \tdplotsphericalsurfaceplot{72}{36}{1/sqrt((sin(\tdplottheta)*cos(\tdplotphi) / \a)^2 + (sin(\tdplottheta)*sin(\tdplotphi) / \b)^2 + (cos(\tdplottheta) / \c)^2)}{white}{white}{}{}{}%{black}{red!40!yellow!20!green!50!blue!70!white!70}{}{}{} % Original: red!40!yellow!20!green!50!blue!70
+\tdplotsetpolarplotrange{0}{90}{0}{90}
+\tdplotsphericalsurfaceplot{72}{36}{1/sqrt((sin(\tdplottheta)*cos(\tdplotphi) / \a)^2 + (sin(\tdplottheta)*sin(\tdplotphi) / \b)^2 + (cos(\tdplottheta) / \c)^2)}{white}{white}{}{}{}%{black}{red!40!yellow!20!green!50!blue!70!white!70}{}{}{} % Original: red!40!yellow!20!green!50!blue!70
 
 
 %%%%%%%% Temporary ellipse to help compile time %%%%%%%%%%%%%%
-\draw[red] (0,0) ellipse[x radius=28.5*\a pt, y radius=29.5*\c pt];
+%%%%%%%% \draw[red] (0,0) ellipse[x radius=28.5*\a pt, y radius=29.5*\c pt];
 
 % Draw coordinate system in exposed x-y plane
 % Try clipping on xy plane
@@ -5967,14 +5969,14 @@ The Taylor-Maccoll flow field is visualized in terms of pressure for clarity.
 \begin{figure}[H]
   \centering
   \begin{subfigure}[b]{\linewidth}
-    \includegraphics[width=\linewidth]{PressureRatio8degreeconeMach1.01885}
+    \includegraphics[width=\linewidth]{{PressureRatio8degreeconeMach1.01885}.eps}
     \caption{Mach 1.02 flow over an $8^\circ$ circular cone to show the shockwave and flow field pattern.}% Note that solutions to the Taylor-Maccoll equations cease to exist outside to the right of the determined region, indicating a change in the shock pattern of the flow. Solutions outside to the left of the region don't exactly fail to exist, but were simply held to the constraint, $\theta_s < \mu$, where $\mu = \sin^{-1}(1/M)$ is the Mach wave angle.}
     \label{fig:TaylorMaccollFlowField8DegatMach1_02}
   \end{subfigure}
 \end{figure}%
 \begin{figure}[H]\ContinuedFloat
   \begin{subfigure}[b]{\linewidth}
-    \includegraphics[width=\linewidth]{PressureRatio20degreeconeMach2.5}
+    \includegraphics[width=\linewidth]{{PressureRatio20degreeconeMach2.5}.eps}
     \caption{Mach 2.5 flow over a $20^\circ$ circular cone. The pressure on the cone's surface is nearly double that of the freestream.}% Note that solutions to the Taylor-Maccoll equations cease to exist outside to the right of the determined region, indicating a change in the shock pattern of the flow. Solutions outside to the left of the region don't exactly fail to exist, but were simply held to the constraint, $\theta_s < \mu$, where $\mu = \sin^{-1}(1/M)$ is the Mach wave angle.}
     \label{fig:TaylorMaccollFlowField20DegatMach2_5}
   \end{subfigure}
